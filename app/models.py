@@ -1,18 +1,25 @@
-from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean, ForeignKey, Enum
+from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean, ForeignKey, Enum, Date
 from sqlalchemy.orm import relationship
 from app import app, db
-from enum import Enum as RoleEnum
+from enum import Enum as ClassEnum
 from flask_login import UserMixin 
 
-class UserRole(RoleEnum):
+class UserRole(ClassEnum):
     ADMIN = 1
     USER = 2
+
+class Gender(ClassEnum):
+    MALE = 1
+    FEMALE = 2
+    OTHER = 3
 
 class User(db.Model, UserMixin):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     phone = Column(String(20), nullable=False)
     email = Column(String(100), nullable=False)
+    gender = Column(Enum(Gender), default=Gender.MALE, nullable=True)
+    dob = Column(Date, nullable=True)  # Date: yyyy-mm-dd
     username = Column(String(100), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
     avatar = Column(String(100), nullable=True, 
@@ -44,14 +51,16 @@ class Event(db.Model):
 
 if __name__ == "__main__":
     with app.app_context():
-        #db.create_all()
+        db.create_all()
 
-        import hashlib
-        u = User(name="demo", phone="0123456789", email="demo@gmail.com", username="demo", user_role=UserRole.ADMIN, 
-        password= str(hashlib.md5("123456".encode('utf-8')).hexdigest()))
+        # import hashlib
+        # import datetime
+        # u = User(name="demo", phone="0123456789", email="demo@gmail.com", username="demo", user_role=UserRole.ADMIN, gender=Gender.MALE,
+        # dob=datetime.date(2004, 9, 25),  # Năm, Tháng, Ngày
+        # password= str(hashlib.md5("123456".encode('utf-8')).hexdigest()))
 
-        db.session.add(u)
-        db.session.commit()
+        # db.session.add(u)
+        # db.session.commit()
         
         # c1 = Category(name="Nghệ thuật - giải trí")
         # c2 = Category(name="Thể thao")

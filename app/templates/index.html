@@ -30,7 +30,7 @@
   <li class="page-item {% if current_page <= 1 %}disabled{% endif %}">
     <a
       class="page-link"
-      href="/?page={{ current_page - 1 if current_page > 1 else 1 }}"
+      href="/?page={{ current_page - 1 if current_page > 1 else 1 }}&kw={{ kw }}&category_id={{ cate_id }}"
       >Previous</a
     >
   </li>
@@ -38,7 +38,7 @@
   <!-- Các trang -->
   {% for i in range(1, pages + 1) %}
   <li class="page-item {% if i == current_page %}active{% endif %}">
-    <a class="page-link" href="/?page={{ i }}">{{ i }}</a>
+    <a class="page-link" href="/?page={{ i }}&kw={{ kw }}&category_id={{ cate_id }}">{{ i }}</a>
   </li>
   {% endfor %}
 
@@ -46,7 +46,7 @@
   <li class="page-item {% if current_page >= pages %}disabled{% endif %}">
     <a
       class="page-link"
-      href="/?page={{ current_page + 1 if current_page < pages else pages }}"
+      href="/?page={{ current_page + 1 if current_page < pages else pages }}&kw={{ kw }}&category_id={{ cate_id }}"
       >Next</a
     >
   </li>

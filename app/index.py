@@ -11,10 +11,11 @@ def index():
     current_page = request.args.get("page", 1)
     events = dao.load_events(cate_id=cate_id, kw=kw, page=int(current_page))
     page_size = app.config.get("PAGE_SIZE", 8)
-    total = dao.count_events()
+    total = dao.count_events(cate_id=cate_id, kw=kw)
 
     return render_template("index.html", categories = cates, events = events, 
-                           pages = math.ceil(total/ page_size), current_page=int(current_page))
+                           pages = math.ceil(total/ page_size), 
+                           current_page=int(current_page), cate_id=cate_id, kw=kw)
 
 
 @app.route("/login", methods=['get', 'post'])
@@ -38,6 +39,31 @@ def get_user(user_id):
 def logout_process():
     logout_user()
     return redirect('/')
+
+@app.route("/register", methods=['get', 'post'])
+def register_process():
+    error_message = None
+    if(request.method.__eq__('POST')):
+        name = request.form.get('name')
+        phone = request.form.get('phone')
+        email = request.form.get('email')
+        gender = request.form.get('gender')  # giá trị là "MALE", "FEMALE", "OTHER"
+        dob = request.form.get('dob')  # yyyy-mm-dd
+        username = request.form.get('username')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        avatar = request.files.get('avatar')
+        if(password.__eq__(confirm_password)):
+            duplicate_user_error = dao.get_user_by_username(username)
+            if(duplicate_user_error): 
+                error_message = "Tên đăng nhập này đã được sử dụng ở 1 tài khoản khác"
+            else:
+                dao.add_user(name=name, phone=phone, email=email, gender=gender, dob=dob, username=username, password=password, avatar=avatar)
+                return redirect('/login')
+        else:
+            error_message = "Mật khẩu không khớp. Vui lòng nhập lại!"
+
+    return render_template("layout/register.html", error_message=error_message)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,108 @@
+{% extends 'layout/base.html' %} {% block content%}
+<h1 class="text-center text-success mt-1">Đăng ký tài khoản</h1>
+
+{% if error_message %}
+<div class="mb-3 mt-3 w-50 mx-auto alert alert-danger">{{ error_message }}</div>
+{% endif %}
+
+<form method="post" action="/register" enctype="multipart/form-data">
+  <!-- Họ và tên -->
+  <div class="form-floating mb-3 mt-3 w-50 mx-auto">
+    <input type="text" class="form-control" id="hoTen" name="name" required />
+    <label for="hoTen">Họ và tên</label>
+  </div>
+
+  <!-- Số điện thoại -->
+  <div class="form-floating mb-3 mt-3 w-50 mx-auto">
+    <input
+      type="number"
+      class="form-control"
+      id="soDienThoai"
+      name="phone"
+      required
+    />
+    <label for="soDienThoai">Số điện thoại</label>
+  </div>
+
+  <!-- Email -->
+  <div class="form-floating mb-3 mt-3 w-50 mx-auto">
+    <input type="email" class="form-control" id="email" name="email" required />
+    <label for="email">Email</label>
+  </div>
+
+  <div class="row w-50 mx-auto">
+    <!-- Giới tính -->
+    <div class="col-md-6 mb-1">
+      <div class="form-floating">
+        <select class="form-select" id="gioiTinh" name="gender">
+          <option value="MALE">Nam</option>
+          <option value="FEMALE">Nữ</option>
+          <option value="OTHER">Khác</option>
+        </select>
+        <label for="gioiTinh">Giới tính</label>
+      </div>
+    </div>
+
+    <!-- Ngày sinh -->
+    <div class="col-md-6 mb-1">
+      <div class="form-floating">
+        <input
+          type="date"
+          class="form-control"
+          id="ngaySinh"
+          name="dob"
+          required
+        />
+        <label for="ngaySinh">Ngày sinh</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tên đăng nhập -->
+  <div class="form-floating mb-3 mt-3 w-50 mx-auto">
+    <input
+      type="text"
+      class="form-control"
+      id="tenDangNhap"
+      name="username"
+      required
+    />
+    <label for="tenDangNhap">Tên đăng nhập</label>
+  </div>
+
+  <!-- Mật khẩu -->
+  <div class="form-floating mb-3 mt-3 w-50 mx-auto">
+    <input
+      type="password"
+      class="form-control"
+      id="matKhau"
+      name="password"
+      required
+    />
+    <label for="matKhau">Mật khẩu</label>
+  </div>
+
+  <!-- Xác nhận mật khẩu -->
+  <div class="form-floating mb-3 mt-3 w-50 mx-auto">
+    <input
+      type="password"
+      class="form-control"
+      id="xacNhanMatKhau"
+      name="confirm_password"
+      required
+    />
+    <label for="xacNhanMatKhau">Xác nhận mật khẩu</label>
+  </div>
+
+  <!-- Avatar (tùy chọn) -->
+  <div class="form-floating mb-3 mt-3 w-50 mx-auto">
+    <input type="file" class="form-control" id="anhDaiDien" name="avatar" />
+    <label for="anhDaiDien">Ảnh đại diện </label>
+  </div>
+
+  <!-- Nút đăng ký -->
+  <div class="form-floating mt-3 mb-3 w-50 mx-auto text-end">
+    <button class="btn btn-success">Đăng ký</button>
+  </div>
+</form>
+{% endblock %}
