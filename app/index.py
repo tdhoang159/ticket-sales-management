@@ -69,4 +69,5 @@ def register_process():
     return render_template("layout/register.html", error_message=error_message)
 
 if __name__ == '__main__':
+    from app import admin
     app.run(debug=True)

@@ -33,6 +33,9 @@ class Category(db.Model):
     name = Column(String(500), nullable=False, unique=True)
     events = relationship('Event', backref='category', lazy=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Event(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -48,6 +51,9 @@ class Event(db.Model):
     active = Column(Boolean, default=True)
 
     category_id = Column(Integer, ForeignKey(Category.id), nullable=False)
+
+    def __str__(self):
+        return self.name
 
 if __name__ == "__main__":
     with app.app_context():
