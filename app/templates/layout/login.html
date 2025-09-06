@@ -1,5 +1,8 @@
 {% extends 'layout/base.html' %} {% block content%}
 <h1 class="text-center text-danger mt-1">Đăng nhập người dùng</h1>
+{% if login_error_message %}
+<div class="mb-3 mt-3 w-50 mx-auto alert alert-danger">{{ login_error_message }}</div>
+{% endif %}
 <form method="post" action="/login">
   <div class="form-floating mb-3 mt-3 w-50 mx-auto">
     <input

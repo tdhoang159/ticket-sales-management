@@ -1,56 +1,57 @@
 <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="/">OU Ticket Box</a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#collapsibleNavbar"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="collapsibleNavbar">
-          <ul class="navbar-nav me-auto">
-
-            {% for c in categories %}
-            <li class="nav-item">
-              <a class="nav-link" href="/?category_id={{ c.id }}"
-                >{{ c.name }}</a
-              >
-            </li>
-            {% endfor %}
-
-            {%  if current_user.is_authenticated %}
-            <li class="nav-item">
-              <a class="nav-link text-danger" href="/">
-                <img src="{{ current_user.avatar }}" width="30" class="rounded-circle"/>
-                Chào {{ current_user.username }}.
-              </a>
-            </li>
-
-            <li class="nav-item">
-              <a class="nav-link text-warning" href="/logout">Đăng xuất</a>
-            </li>
-            {% else %}
-            <li class="nav-item">
-              <a class="nav-link text-danger" href="/login">Đăng nhập</a>
-            </li>
-
-            <li class="nav-item">
-              <a class="nav-link text-warning" href="/register">Đăng kí</a>
-            </li>
-            {% endif %}
-
-          </ul>
-          <form method="get" action="/" class="d-flex">
-            <input
-              class="form-control me-2"
-              type="text"
-              name="kw"
-              placeholder="Tìm sự kiện ..."
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">OU Ticket Box</a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav me-auto">
+        {% for c in categories %}
+        <li class="nav-item">
+          <a class="nav-link" href="/?category_id={{ c.id }}">{{ c.name }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+      <div class="d-flex">
+        {% if current_user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link text-white d-inline-block " href="/">
+            <img
+              src="{{ current_user.avatar }}"
+              width="30"
+              class="rounded-circle"
             />
-            <button class="btn btn-primary" type="submit">Search</button>
-          </form>
-        </div>
+            Chào {{ current_user.username }}
+          </a>
+        </li>
+
+        <li class="nav-item me-3 mt-1">
+          <a class="btn btn-danger d-inline-block" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Đăng xuất</a>
+        </li>
+        {% include "layout/confirm_logout_modal.html" %}
+        {% else %}
+        <li class="nav-item">
+          <a class="btn btn-success d-inline-block" href="/login">Đăng nhập</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="btn btn-warning d-inline-block me-3 " href="/register">Đăng kí</a>
+        </li>
+        {% endif %}
+        <form method="get" action="/" class="d-flex me-1">
+          <input
+            class="form-control me-2"
+            type="text"
+            name="kw"
+            placeholder="Tìm sự kiện ..."
+          />
+          <button class="btn btn-primary" type="submit">Search</button>
+        </form>
       </div>
-    </nav>
+    </div>
+  </div>
+</nav>
