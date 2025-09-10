@@ -2,6 +2,7 @@ from flask import render_template, request, redirect
 from app import app, dao, login
 import math
 from flask_login import login_user, logout_user
+from app.models import UserRole
 
 @app.route("/")
 def index(): 
@@ -67,6 +68,19 @@ def register_process():
             error_message = "Mật khẩu không khớp. Vui lòng nhập lại!"
 
     return render_template("layout/register.html", error_message=error_message)
+
+@app.route('/login-admin', methods=['post'])
+def login_admin_process():
+    login_error_message = None
+    username = request.form.get('username')
+    password = request.form.get('password')
+    auth_user = dao.auth_user(username=username, password=password, role=UserRole.ADMIN)
+
+    if(auth_user):
+        login_user(auth_user)
+        return redirect('/admin')
+    else:
+        login_error_message = "Sai tên đăng nhập hoặc mật khẩu! Vui lòng đăng nhập lại."
 
 if __name__ == '__main__':
     from app import admin
