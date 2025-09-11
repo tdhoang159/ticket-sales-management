@@ -1,0 +1,40 @@
+{% extends 'layout/base.html' %} 
+{% block content%}
+<h1 class="text-center text-success mt-1">GIỎ VÉ</h1>
+
+{% if 'ticket_cart' in session %}
+
+<table class="table">
+    <tr>
+        <th>Id</th>
+        <th>Tên sự kiện</th>
+        <th>Giá vé VIP</th>
+        <th>Số lượng vé VIP</th>
+        <th>Giá vé thường</th>
+        <th>Số lượng vé thường</th>
+        <th></th>
+    </tr>
+    {% for c in session['ticket_cart'].values() %}
+    <tr>
+        <td>{{ c.id }}</td>
+        <td>{{ c.event_name }}</td>
+        <td>{{ c.vip_price }}</td>
+        <td>
+            <input type="number" value="{{ c.vip_quantity }}" class="form-control" />
+        </td>
+        <td>{{ c.normal_price }}</td>
+        <td>
+            <input type="number" value="{{ c.normal_quantity }}" class="form-control" />
+        </td>
+        <td>
+            <button class="btn btn-warning">&#128296;</button>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% else %}
+<div class="alert alert-danger mt-1">KHÔNG CÓ VÉ NÀO TRONG GIỎ!</div>
+{% endif%}
+
+{% endblock %}

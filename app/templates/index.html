@@ -15,7 +15,7 @@
         </p>
         <div class="d-flex justify-content-between">
           <a href="#" class="btn btn-primary">Xem chi tiết</a>
-          <button class="btn btn-danger">Đặt vé</button>
+          <button class="btn btn-danger" onclick="add_to_cart({{ e.id }}, '{{ e.name }}', {{ e.vip_price }}, {{ e.normal_price }})">Đặt vé</button>
         </div>
       </div>
     </div>

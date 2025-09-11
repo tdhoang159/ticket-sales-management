@@ -1,4 +1,8 @@
 body {
-    background-color: lightblue;
-    color: darkblue;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* body luôn cao ít nhất bằng chiều cao màn hình */
+}
+main {
+  flex: 1; /* đẩy footer xuống cuối */
 }

@@ -28,9 +28,11 @@
             />
             Chào {{ current_user.username }}
           </a>
-          <a class="btn btn-info d-inline-block ms-2" href="/cart">
+          <a class="btn btn-info d-inline-block ms-2" href="/ticket-cart">
             <span style="font-size: 20px; line-height: 1;">&#127915;</span>
-            <span class="badge bg-danger">0</span>
+            <span class="badge bg-danger cart-counter">
+              {{ cart_stats.total_quantity }}
+            </span>
           </a>
         </li>
         <li class="nav-item me-3 mt-1">

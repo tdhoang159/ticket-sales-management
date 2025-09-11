@@ -1,12 +1,11 @@
 from flask import render_template, request, redirect, session, jsonify
-from app import app, dao, login
+from app import app, dao, login, utils
 import math
 from flask_login import login_user, logout_user
 from app.models import UserRole
 
 @app.route("/")
 def index(): 
-    cates = dao.load_categories()
     cate_id = request.args.get("category_id")
     kw = request.args.get("kw")
     current_page = request.args.get("page", 1)
@@ -14,7 +13,7 @@ def index():
     page_size = app.config.get("PAGE_SIZE", 8)
     total = dao.count_events(cate_id=cate_id, kw=kw)
 
-    return render_template("index.html", categories = cates, events = events, 
+    return render_template("index.html", events = events, 
                            pages = math.ceil(total/ page_size), 
                            current_page=int(current_page), cate_id=cate_id, kw=kw)
 
@@ -99,7 +98,7 @@ def add_to_ticket_cart():
         ticket_cart[id]['normal_quantity'] += 1;
     else:
         ticket_cart[id] = {
-            "id": "2",
+            "id": id,
             "event_name": event_name,
             "vip_price": vip_price,
             "vip_quantity": 0,
@@ -109,6 +108,19 @@ def add_to_ticket_cart():
 
     session['ticket_cart'] = ticket_cart
     print(ticket_cart)
+
+    return jsonify(utils.stats_cart(ticket_cart))
+
+@app.context_processor
+def common_response():
+    return {
+        'categories': dao.load_categories(),
+        'cart_stats': utils.stats_cart(session.get('ticket_cart'))
+    }
+
+@app.route('/ticket-cart')
+def ticket_cart():
+    return render_template("layout/ticket-cart.html")
 
 if __name__ == '__main__':
     from app import admin
