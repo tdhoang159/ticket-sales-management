@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect
+from flask import render_template, request, redirect, session, jsonify
 from app import app, dao, login
 import math
 from flask_login import login_user, logout_user
@@ -81,6 +81,34 @@ def login_admin_process():
         return redirect('/admin')
     else:
         login_error_message = "Sai tên đăng nhập hoặc mật khẩu! Vui lòng đăng nhập lại."
+
+@app.route('/api/ticket-cart', methods=['post'])
+def add_to_ticket_cart():
+    ticket_cart = session.get('ticket_cart')
+    if not ticket_cart:
+        ticket_cart = {}
+
+    id = str(request.json.get('id'))
+    event_name = request.json.get('event_name')
+    vip_price = request.json.get('vip_price')
+    vip_quantity = request.json.get('vip_quantity')
+    normal_price = request.json.get('normal_price')
+    normal_quantity = request.json.get('normal_quantity')
+
+    if id in ticket_cart:
+        ticket_cart[id]['normal_quantity'] += 1;
+    else:
+        ticket_cart[id] = {
+            "id": "2",
+            "event_name": event_name,
+            "vip_price": vip_price,
+            "vip_quantity": 0,
+            "normal_price": normal_price,
+            "normal_quantity": 1
+        }
+
+    session['ticket_cart'] = ticket_cart
+    print(ticket_cart)
 
 if __name__ == '__main__':
     from app import admin

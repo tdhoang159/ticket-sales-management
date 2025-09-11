@@ -1,6 +1,4 @@
-{% extends 'layout/base.html' %} 
-{% block content%} 
-{% if events %}
+{% extends 'layout/base.html' %} {% block content%} {% if events %}
 <div class="row">
   {% for e in events %}
   <div class="col-md-3 col-12 p-4">
@@ -28,30 +26,32 @@
 <ul class="pagination">
   <!-- Previous -->
   <li class="page-item {% if current_page <= 1 %}disabled{% endif %}">
-    <a
-      class="page-link"
-      href="/?page={{ current_page - 1 if current_page > 1 else 1 }}&kw={{ kw }}&category_id={{ cate_id }}"
-      >Previous</a
-    >
+    <a class="page-link" 
+   href="/?page={{ current_page - 1 if current_page > 1 else 1 }}{% if kw %}&kw={{ kw }}{% endif %}{% if cate_id %}&category_id={{ cate_id }}{% endif %}">
+   Previous
+</a>
+
   </li>
 
   <!-- Các trang -->
   {% for i in range(1, pages + 1) %}
   <li class="page-item {% if i == current_page %}active{% endif %}">
-    <a class="page-link" href="/?page={{ i }}&kw={{ kw }}&category_id={{ cate_id }}">{{ i }}</a>
+    <a
+      class="page-link"
+      href="/?page={{ i }}{% if kw %}&kw={{ kw }}{% endif %}{% if cate_id %}&category_id={{ cate_id }}{% endif %}"> 
+      {{ i }}
+    </a>
   </li>
   {% endfor %}
 
   <!-- Next -->
   <li class="page-item {% if current_page >= pages %}disabled{% endif %}">
-    <a
-      class="page-link"
-      href="/?page={{ current_page + 1 if current_page < pages else pages }}&kw={{ kw }}&category_id={{ cate_id }}"
-      >Next</a
-    >
+    <a class="page-link" 
+   href="/?page={{ current_page + 1 if current_page < pages else pages }}{% if kw %}&kw={{ kw }}{% endif %}{% if cate_id %}&category_id={{ cate_id }}{% endif %}">
+   Next
+</a>
   </li>
 </ul>
 {% endif%} {% else %}
 <div class="alert alert-danger">KHÔNG CÓ SỰ KIỆN NÀO!</div>
-{% endif %} 
-{% endblock %}
+{% endif %} {% endblock %}

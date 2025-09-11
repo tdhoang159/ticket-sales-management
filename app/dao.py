@@ -12,10 +12,10 @@ def load_categories():
 def load_events(cate_id=None, kw=None, page=1): 
     query = Event.query
 
-    if(kw):
+    if (kw):
         query = query.filter(Event.name.contains(kw))
 
-    if(cate_id): 
+    if (cate_id):
         query = query.filter(Event.category_id == cate_id)
 
     page_size = app.config.get("PAGE_SIZE")
