@@ -8,6 +8,9 @@ import cloudinary.uploader
 def load_categories(): 
     return Category.query.order_by('id').all()
 
+def load_provinces():
+    provinces = db.session.query(Event.province).distinct().all()
+    return [p[0] for p in provinces if p[0] is not None]
 
 def load_events(cate_id=None, kw=None, page=1): 
     query = Event.query

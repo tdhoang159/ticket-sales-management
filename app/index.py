@@ -6,11 +6,22 @@ from app.models import UserRole
 
 @app.route("/")
 def index(): 
+    #Lọc theo loại sự kiện
     cate_id = request.args.get("category_id")
+
+    #Tìm kiếm sự kiện theo tên
     kw = request.args.get("kw")
+
+    #Trang đang đứng
     current_page = request.args.get("page", 1)
+
+    #Event trả về
     events = dao.load_events(cate_id=cate_id, kw=kw, page=int(current_page))
+
+    #Số event hiện trên 1 trang
     page_size = app.config.get("PAGE_SIZE", 8)
+
+    #Đếm tổng số event trong 1 request để tính tổng số trang
     total = dao.count_events(cate_id=cate_id, kw=kw)
 
     return render_template("index.html", events = events, 
@@ -115,6 +126,7 @@ def add_to_ticket_cart():
 def common_response():
     return {
         'categories': dao.load_categories(),
+        'provinces': dao.load_provinces(),
         'cart_stats': utils.stats_cart(session.get('ticket_cart'))
     }
 

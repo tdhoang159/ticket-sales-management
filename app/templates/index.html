@@ -1,4 +1,12 @@
-{% extends 'layout/base.html' %} {% block content%} {% if events %}
+{% extends 'layout/base.html' %} {% block content %} {% if events %}
+<button
+  class="btn btn-primary mt-2"
+  type="button"
+  data-bs-toggle="offcanvas"
+  data-bs-target="#filterMenu" > 
+  Lọc sự kiện
+</button>
+{% include "layout/filter_event_sidebar.html" %}
 <div class="row">
   {% for e in events %}
   <div class="col-md-3 col-12 p-4">
@@ -15,7 +23,12 @@
         </p>
         <div class="d-flex justify-content-between">
           <a href="#" class="btn btn-primary">Xem chi tiết</a>
-          <button class="btn btn-danger" onclick="add_to_cart({{ e.id }}, '{{ e.name }}', {{ e.vip_price }}, {{ e.normal_price }})">Đặt vé</button>
+          <button
+            class="btn btn-danger"
+            onclick="add_to_cart({{ e.id }}, '{{ e.name }}', {{ e.vip_price }}, {{ e.normal_price }})"
+          >
+            Đặt vé
+          </button>
         </div>
       </div>
     </div>
@@ -26,11 +39,12 @@
 <ul class="pagination">
   <!-- Previous -->
   <li class="page-item {% if current_page <= 1 %}disabled{% endif %}">
-    <a class="page-link" 
-   href="/?page={{ current_page - 1 if current_page > 1 else 1 }}{% if kw %}&kw={{ kw }}{% endif %}{% if cate_id %}&category_id={{ cate_id }}{% endif %}">
-   Previous
-</a>
-
+    <a
+      class="page-link"
+      href="/?page={{ current_page - 1 if current_page > 1 else 1 }}{% if kw %}&kw={{ kw }}{% endif %}{% if cate_id %}&category_id={{ cate_id }}{% endif %}"
+    >
+      Previous
+    </a>
   </li>
 
   <!-- Các trang -->
@@ -38,7 +52,8 @@
   <li class="page-item {% if i == current_page %}active{% endif %}">
     <a
       class="page-link"
-      href="/?page={{ i }}{% if kw %}&kw={{ kw }}{% endif %}{% if cate_id %}&category_id={{ cate_id }}{% endif %}"> 
+      href="/?page={{ i }}{% if kw %}&kw={{ kw }}{% endif %}{% if cate_id %}&category_id={{ cate_id }}{% endif %}"
+    >
       {{ i }}
     </a>
   </li>
@@ -46,10 +61,12 @@
 
   <!-- Next -->
   <li class="page-item {% if current_page >= pages %}disabled{% endif %}">
-    <a class="page-link" 
-   href="/?page={{ current_page + 1 if current_page < pages else pages }}{% if kw %}&kw={{ kw }}{% endif %}{% if cate_id %}&category_id={{ cate_id }}{% endif %}">
-   Next
-</a>
+    <a
+      class="page-link"
+      href="/?page={{ current_page + 1 if current_page < pages else pages }}{% if kw %}&kw={{ kw }}{% endif %}{% if cate_id %}&category_id={{ cate_id }}{% endif %}"
+    >
+      Next
+    </a>
   </li>
 </ul>
 {% endif%} {% else %}
