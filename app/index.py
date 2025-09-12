@@ -1,11 +1,30 @@
 from flask import render_template, request, redirect, session, jsonify
 from app import app, dao, login, utils
 import math
+from datetime import datetime
 from flask_login import login_user, logout_user
 from app.models import UserRole
 
 @app.route("/")
 def index(): 
+    # Loại sự kiện (danh sách checkbox  list)
+    cate_ids = request.args.getlist("event_type")
+
+     # Giá vé
+    price_min = request.args.get("price_min")
+    price_max = request.args.get("price_max")
+
+    # Thời gian
+    datetime_from = request.args.get("datetime_from")
+    datetime_to = request.args.get("datetime_to")
+    if datetime_from:
+        datetime_from = datetime.fromisoformat(datetime_from)
+    if datetime_to:
+        datetime_to = datetime.fromisoformat(datetime_to)
+
+    # Địa điểm
+    province = request.args.get("location")
+
     #Lọc theo loại sự kiện
     cate_id = request.args.get("category_id")
 
@@ -15,14 +34,16 @@ def index():
     #Trang đang đứng
     current_page = request.args.get("page", 1)
 
-    #Event trả về
-    events = dao.load_events(cate_id=cate_id, kw=kw, page=int(current_page))
-
     #Số event hiện trên 1 trang
     page_size = app.config.get("PAGE_SIZE", 8)
 
+    ticket_type = request.args.get('ticket_type')
+
+    #Event trả về
+    events = dao.load_events(cate_id=cate_id, kw=kw, page=int(current_page), cate_ids=cate_ids, price_min=price_min, price_max=price_max, datetime_from=datetime_from, datetime_to=datetime_to, province=province, ticket_types=ticket_type)
+
     #Đếm tổng số event trong 1 request để tính tổng số trang
-    total = dao.count_events(cate_id=cate_id, kw=kw)
+    total = dao.count_events(cate_id=cate_id, kw=kw, cate_ids=cate_ids, price_min=price_min, price_max=price_max, datetime_from=datetime_from, datetime_to=datetime_to, province=province, ticket_types=ticket_type)
 
     return render_template("index.html", events = events, 
                            pages = math.ceil(total/ page_size), 

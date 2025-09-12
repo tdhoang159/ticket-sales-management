@@ -3,6 +3,7 @@ from app import app, db
 import hashlib
 import datetime
 import cloudinary.uploader
+from sqlalchemy import and_
 
 
 def load_categories(): 
@@ -12,8 +13,39 @@ def load_provinces():
     provinces = db.session.query(Event.province).distinct().all()
     return [p[0] for p in provinces if p[0] is not None]
 
-def load_events(cate_id=None, kw=None, page=1): 
+def load_events(cate_id=None, kw=None, page=1, cate_ids=None, price_min=None, price_max=None, datetime_from=None, datetime_to=None, province=None, ticket_types=None): 
     query = Event.query
+
+    # Lọc theo nhiều loại sự kiện
+    if cate_ids:
+        query = query.filter(Event.category_id.in_(cate_ids))
+
+    if ticket_types == ["vip"]:  # chỉ VIP
+        if price_min: query = query.filter(Event.vip_price >= price_min)
+        if price_max: query = query.filter(Event.vip_price <= price_max)
+
+    elif ticket_types == ["normal"]:  # chỉ thường
+        if price_min: query = query.filter(Event.normal_price >= price_min)
+        if price_max: query = query.filter(Event.normal_price <= price_max)
+
+    else:  # cả 2 hoặc không chọn gì
+        conds = []
+        if price_min:
+            conds.append(Event.normal_price >= price_min)
+        if price_max:
+            conds.append(Event.vip_price <= price_max)
+        if conds:
+            query = query.filter(and_(*conds))
+
+    # Lọc theo thời gian
+    if datetime_from:
+        query = query.filter(Event.datetime >= datetime_from)
+    if datetime_to:
+        query = query.filter(Event.datetime <= datetime_to)
+
+    # Lọc theo địa điểm
+    if province:
+        query = query.filter(Event.province == province)
 
     if (kw):
         query = query.filter(Event.name.contains(kw))
@@ -27,8 +59,40 @@ def load_events(cate_id=None, kw=None, page=1):
 
     return query.all()
 
-def count_events(cate_id=None, kw=None):
+def count_events(cate_id=None, kw=None, cate_ids=None, price_min=None, price_max=None, datetime_from=None, datetime_to=None, province=None, ticket_types=None):
     query = Event.query
+
+    # Lọc theo nhiều loại sự kiện
+    if cate_ids:
+        query = query.filter(Event.category_id.in_(cate_ids))
+
+    if ticket_types == ["vip"]:  # chỉ VIP
+        if price_min: query = query.filter(Event.vip_price >= price_min)
+        if price_max: query = query.filter(Event.vip_price <= price_max)
+
+    elif ticket_types == ["normal"]:  # chỉ thường
+        if price_min: query = query.filter(Event.normal_price >= price_min)
+        if price_max: query = query.filter(Event.normal_price <= price_max)
+
+    else:  # cả 2 hoặc không chọn gì
+        conds = []
+        if price_min:
+            conds.append(Event.normal_price >= price_min)
+        if price_max:
+            conds.append(Event.vip_price <= price_max)
+        if conds:
+            query = query.filter(and_(*conds))
+
+
+    # Lọc theo thời gian
+    if datetime_from:
+        query = query.filter(Event.datetime >= datetime_from)
+    if datetime_to:
+        query = query.filter(Event.datetime <= datetime_to)
+
+    # Lọc theo địa điểm
+    if province:
+        query = query.filter(Event.province == province)
 
     if kw:
         query = query.filter(Event.name.contains(kw))

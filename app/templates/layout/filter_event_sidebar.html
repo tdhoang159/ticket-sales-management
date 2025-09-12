@@ -8,20 +8,15 @@
     ></button>
   </div>
   <div class="offcanvas-body">
-    <!-- Các chức năng lọc -->
-    <form id="filterForm">
+    <form id="filterForm" method="get" action="/">
       <!-- Lọc theo loại sự kiện -->
       <h5 class="fw-bold">Loại sự kiện</h5>
       <div class="mb-3">
         {% for c in categories %}
         <div class="form-check">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            name="event_type"
-            value="{{ c.id }}"
-            id="eventType{{ c.id }}"
-          />
+          <input class="form-check-input" type="checkbox" name="event_type"
+          value="{{ c.id }}" id="eventType{{ c.id }}" {% if c.id|string in
+          request.args.getlist('event_type') %}checked{% endif %} />
           <label class="form-check-label" for="eventType{{ c.id }}">
             {{ c.name }}
           </label>
@@ -31,6 +26,32 @@
 
       <!-- Lọc theo giá vé -->
       <h5 class="mb-2 fw-bold">Giá vé</h5>
+      <div class="d-flex gap-3">
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            name="ticket_type"
+            value="vip"
+            id="ticketTypeVip"
+            {% if 'vip' in request.args.getlist('ticket_type') %}checked{% endif %}
+          />
+          <label class="form-check-label" for="ticketTypeVip"> Vé VIP </label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            name="ticket_type"
+            value="normal"
+            id="ticketTypeNormal"
+            {% if 'normal' in request.args.getlist('ticket_type') %}checked{% endif %}
+          />
+          <label class="form-check-label" for="ticketTypeNormal">
+            Vé thường
+          </label>
+        </div>
+      </div>
       <div class="input-group mb-4">
         <span class="input-group-text">Từ:</span>
         <input
@@ -39,6 +60,7 @@
           name="price_min"
           placeholder="50000"
           step="10000"
+          value="{{ request.args.get('price_min','') }}"
         />
         <span class="input-group-text">Đến:</span>
         <input
@@ -47,6 +69,7 @@
           name="price_max"
           placeholder="1000000"
           step="10000"
+          value="{{ request.args.get('price_max','') }}"
         />
       </div>
 
@@ -54,11 +77,21 @@
       <h5 class="mb-2 fw-bold">Thời gian</h5>
       <div class="mb-2 input-group">
         <label class="input-group-text">Từ:</label>
-        <input type="datetime-local" class="form-control" name="datetime_from" />
+        <input
+          type="datetime-local"
+          class="form-control"
+          name="datetime_from"
+          value="{{ request.args.get('datetime_from','') }}"
+        />
       </div>
       <div class="mb-4 input-group">
         <label class="input-group-text">Đến:</label>
-        <input type="datetime-local" class="form-control" name="datetime_to" />
+        <input
+          type="datetime-local"
+          class="form-control"
+          name="datetime_to"
+          value="{{ request.args.get('datetime_to','') }}"
+        />
       </div>
 
       <!-- Lọc theo địa điểm -->
@@ -66,7 +99,8 @@
       <select class="form-select mb-3" name="location">
         <option value="">-- Chọn địa điểm --</option>
         {% for p in provinces %}
-        <option value="{{p}}">{{ p }}</option>
+        <option value="{{p}}" 
+        {% if request.args.get('location') == p %}selected{% endif %}>{{ p }}</option>
         {% endfor %}
       </select>
 
