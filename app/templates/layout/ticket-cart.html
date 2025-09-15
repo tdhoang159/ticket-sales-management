@@ -6,33 +6,58 @@
 
 <table class="table">
     <tr>
-        <th>Id</th>
-        <th>Tên sự kiện</th>
-        <th>Giá vé VIP</th>
-        <th>Số lượng vé VIP</th>
-        <th>Giá vé thường</th>
-        <th>Số lượng vé thường</th>
-        <th></th>
+        <th class="text-center">Id</th>
+        <th class="text-center">Tên sự kiện</th>
+        <th class="text-center">Giá vé VIP</th>
+        <th class="text-center">Số lượng vé VIP</th>
+        <th class="text-center">Giá vé thường</th>
+        <th class="text-center">Số lượng vé thường</th>
+        <th class="text-center">Tổng số lượng vé </th>
+        <th class="text-center">Tổng số tiền </th>
+        <th class="text-center">Xoá</th>
     </tr>
     {% for c in session['ticket_cart'].values() %}
-    <tr>
-        <td>{{ c.id }}</td>
-        <td>{{ c.event_name }}</td>
-        <td>{{ c.vip_price }}</td>
+    <tr id="ticket-cart{{ c.id }}">
+        <td class="text-center">{{ c.id }}</td>
+        <td class="text-center">{{ c.event_name }}</td>
+        <td class="text-center">{{ "{:,.0f}".format(c.vip_price)}}</td>
         <td>
-            <input type="number" value="{{ c.vip_quantity }}" class="form-control" />
+            <input type="number" value="{{ c.vip_quantity }}" class="form-control form-control-md w-50 mx-auto d-block"
+                   onblur="updateCart({{ c.id }}, this, 'vip', {{ c.vip_price }}, {{ c.normal_price }})"/>
         </td>
-        <td>{{ c.normal_price }}</td>
+        <td class="text-center">{{ "{:,.0f}".format(c.normal_price)}}</td>
         <td>
-            <input type="number" value="{{ c.normal_quantity }}" class="form-control" />
+            <input type="number" value="{{ c.normal_quantity }}" class="form-control form-control-md w-50 mx-auto d-block"
+                   onblur="updateCart({{ c.id }}, this, 'normal', {{ c.vip_price }}, {{ c.normal_price }})" />
+        </td>
+        <td class="text-center" id="total-quantity-{{ c.id }}">{{ c.vip_quantity + c.normal_quantity }}</td>
+        <td class="text-center" id="total-amount-{{ c.id }}">
+        {{ "{:,.0f}".format(c.vip_quantity * c.vip_price + c.normal_quantity * c.normal_price) }}
         </td>
         <td>
-            <button class="btn btn-warning">&#128296;</button>
+            <button class="btn btn-danger mx-auto d-block" onclick="deleteCart({{ c.id }})">&#128465;</button>
         </td>
     </tr>
     {% endfor %}
+    <tr>
+        <th colspan="6" class="text-end">Tổng cộng: </th>
+        <td class="text-center"> <span class="cart-counter"> {{ cart_stats.total_quantity }}</span> vé</td>
+        <td class="text-center"><span class="cart-amount">{{ "{:,.0f}".format(cart_stats.total_amount) }}</span></td>
+        <td></td>
+    </tr>
 </table>
-
+{% if current_user.is_authenticated %}
+<div class="text-end">
+  <button class="btn btn-success fw-bold" onclick="alert('Chuẩn bị thanh toán nhaaaaa!!!!!!')">Thanh toán</button>
+</div>
+{% else %}
+<div class="text-end">
+  <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#loginRequiredModal">
+    Thanh toán
+  </button>
+</div>
+{% include "layout/login_required_modal.html" %}
+{% endif %}
 {% else %}
 <div class="alert alert-danger mt-1">KHÔNG CÓ VÉ NÀO TRONG GIỎ!</div>
 {% endif%}

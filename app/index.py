@@ -3,6 +3,7 @@ from app import app, dao, login, utils
 import math
 from datetime import datetime
 from flask_login import login_user, logout_user
+from urllib.parse import urlencode
 from app.models import UserRole
 
 @app.route("/")
@@ -37,7 +38,7 @@ def index():
     #Số event hiện trên 1 trang
     page_size = app.config.get("PAGE_SIZE", 8)
 
-    ticket_type = request.args.get('ticket_type')
+    ticket_type = request.args.getlist('ticket_type')
 
     #Event trả về
     events = dao.load_events(cate_id=cate_id, kw=kw, page=int(current_page), cate_ids=cate_ids, price_min=price_min, price_max=price_max, datetime_from=datetime_from, datetime_to=datetime_to, province=province, ticket_types=ticket_type)
@@ -45,9 +46,19 @@ def index():
     #Đếm tổng số event trong 1 request để tính tổng số trang
     total = dao.count_events(cate_id=cate_id, kw=kw, cate_ids=cate_ids, price_min=price_min, price_max=price_max, datetime_from=datetime_from, datetime_to=datetime_to, province=province, ticket_types=ticket_type)
 
+    params = []
+    for key in request.args:
+        if key == "page":
+            continue
+        for v in request.args.getlist(key):   # hỗ trợ checkbox (key lặp)
+            if v is None or v == "":
+                continue
+            params.append((key, v))
+    base_qs = urlencode(params)
+
     return render_template("index.html", events = events, 
                            pages = math.ceil(total/ page_size), 
-                           current_page=int(current_page), cate_id=cate_id, kw=kw)
+                           current_page=int(current_page), cate_id=cate_id, kw=kw, base_qs=base_qs)
 
 
 @app.route("/login", methods=['get', 'post'])
@@ -60,7 +71,8 @@ def login_process():
 
         if(auth_user):
             login_user(auth_user)
-            return redirect('/')
+            next = request.args.get('next')
+            return redirect(next if next else '/')
         else:
             login_error_message = "Sai tên đăng nhập hoặc mật khẩu! Vui lòng đăng nhập lại."
 
@@ -154,6 +166,36 @@ def common_response():
 @app.route('/ticket-cart')
 def ticket_cart():
     return render_template("layout/ticket-cart.html")
+
+@app.route('/api/ticket-cart/<event_id>', methods=['put'])
+def update_ticket_cart(event_id):
+    ticket_cart = session.get('ticket_cart')
+    if ticket_cart and event_id in ticket_cart:
+        item = ticket_cart[event_id]
+
+
+        vip_quantity = request.json.get('vip_quantity')
+        normal_quantity = request.json.get('normal_quantity')
+
+        if vip_quantity is not None:
+            item['vip_quantity'] = int(vip_quantity)
+        if normal_quantity is not None:
+            item['normal_quantity'] = int(normal_quantity)
+
+        ticket_cart[event_id] = item
+        session['ticket_cart'] = ticket_cart
+
+    return jsonify(utils.stats_cart(ticket_cart))
+
+@app.route('/api/ticket-cart/<event_id>', methods=['delete'])
+def delete_ticket_cart(event_id):
+    ticket_cart = session.get('ticket_cart')
+    if ticket_cart and event_id in ticket_cart:
+        del ticket_cart[event_id]
+
+        session['ticket_cart'] = ticket_cart
+
+    return jsonify(utils.stats_cart(ticket_cart))
 
 if __name__ == '__main__':
     from app import admin
