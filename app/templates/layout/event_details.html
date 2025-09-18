@@ -1,0 +1,20 @@
+{% extends 'layout/base.html' %}
+{% block content%}
+<h1 class="text-center text-success mt-1">CHI TIẾT SỰ KIỆN</h1>
+<div class="row">
+    <div class="col-md-5 col-6">
+        <img src="{{ event.banner }}" class="img-fluid rounded" />
+    </div>
+    <div class="col-md-7 col-6">
+        <h1>{{ event.name }}</h1>
+        <h3 class="text-danger">Giá vé thường: {{ event.normal_price }}</h3>
+        <h3 class="text-danger">Giá vé VIP: {{ event.vip_price }}</h3>
+        <button
+            class="btn btn-danger"
+            onclick="add_to_cart({{ event.id }}, '{{ event.name }}', {{ event.vip_price }}, {{ event.normal_price }})"
+          >
+            Đặt vé
+          </button>
+    </div>
+</div>
+{% endblock %}

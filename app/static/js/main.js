@@ -68,3 +68,18 @@ function deleteCart(event_id){
         })
     }
 }
+
+function pay() {
+    if(confirm("Bạn có chắc chắn muốn thanh toán không? ") === true){
+        fetch(`/api/pay`, {
+            method: 'post'
+        }).then(res => res.json()).then(data => {
+            if(data.status === 200){
+                alert("Thanh toán thành công!");
+                location.reload();
+            }else if(data.status === 500){
+                alert("Thanh toán thất bại! Lỗi server!");
+            }
+        })
+    }
+}

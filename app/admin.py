@@ -1,7 +1,7 @@
 from app.models import Category, Event, User, UserRole
 from flask_admin import Admin, BaseView, expose
 from flask_admin.contrib.sqla import ModelView
-from app import app, db
+from app import app, db, dao
 from flask_login import current_user, logout_user
 from flask import redirect
 
@@ -35,7 +35,9 @@ class LogoutView(BaseView):
 class StatisticView(BaseView):
     @expose('/')
     def index(self):
-        return self.render('admin/statistic.html')
+        return self.render('admin/statistic.html',
+                           revenue_stats_by_events = dao.revenue_stats_by_events(),
+                           revenue_stats_by_time = dao.revenue_stats_by_time())
     
     def is_accessible(self):
         return current_user.is_authenticated and current_user.user_role.__eq__(UserRole.ADMIN)

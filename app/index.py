@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, session, jsonify
 from app import app, dao, login, utils
 import math
 from datetime import datetime
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, login_required
 from urllib.parse import urlencode
 from app.models import UserRole
 
@@ -197,6 +197,22 @@ def delete_ticket_cart(event_id):
 
     return jsonify(utils.stats_cart(ticket_cart))
 
+@app.route('/api/pay', methods=['post'])
+@login_required
+def pay():
+    ticket_cart = session.get('ticket_cart')
+
+    try:
+        dao.add_ticket(ticket_cart)
+    except:
+        return jsonify({'status': 500})
+    else:
+        del session['ticket_cart']
+        return jsonify({'status': 200})
+
+@app.route('/event/<int:event_id>')
+def event_details(event_id):
+    return render_template("layout/event_details.html", event=dao.get_event_by_id(event_id))
 if __name__ == '__main__':
     from app import admin
     app.run(debug=True)
