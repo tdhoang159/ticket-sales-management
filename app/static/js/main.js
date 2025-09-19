@@ -10,14 +10,16 @@ function updateUI(data){
     }
 }
 
-function add_to_cart(id, event_name, vip_price, normal_price) {
+function add_to_cart(id, event_name, vip_price, normal_price, normal_quantity = 0, vip_quantity = 0) {
   fetch("/api/ticket-cart", {
     method: "post",
     body: JSON.stringify({
       "id": id,
       "event_name": event_name,
       "vip_price": vip_price,
+      "vip_quantity": vip_quantity,
       "normal_price": normal_price,
+      "normal_quantity": normal_quantity
     }),
     headers: {
         'Content-Type': "application/json"
@@ -76,14 +78,13 @@ function deleteCart(event_id){
 
 function pay() {
     if(confirm("Bạn có chắc chắn muốn thanh toán không? ") === true){
-        fetch(`/api/pay`, {
-            method: 'post'
-        }).then(res => res.json()).then(data => {
-            if(data.status === 200){
-                alert("Thanh toán thành công!");
-                location.reload();
-            }else if(data.status === 500){
-                alert("Thanh toán thất bại! Lỗi server!");
+        fetch('/api/pay', {method: 'POST'})
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 200) {
+                window.location.href = data.payment_url;
+            } else {
+                alert(data.message || "Có lỗi xảy ra!");
             }
         })
     }

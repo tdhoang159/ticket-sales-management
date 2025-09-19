@@ -25,10 +25,13 @@
           <a href="/event/{{ e.id }}" class="btn btn-primary">Xem chi tiết</a>
           <button
             class="btn btn-danger"
-            onclick="add_to_cart({{ e.id }}, '{{ e.name }}', {{ e.vip_price }}, {{ e.normal_price }})"
+            onclick="add_to_cart({{ e.id }}, '{{ e.name }}', {{ e.vip_price }}, {{ e.normal_price }}, 1, 0)"
+            data-bs-toggle="modal"
+            data-bs-target="#notifyPutTicketInCartModal"
           >
             Đặt vé
           </button>
+            {% include "layout/notify_put_ticket_in_cart_modal.html" %}
         </div>
       </div>
     </div>
@@ -62,4 +65,16 @@
 </ul>
 {% endif %} {% else %}
 <div class="alert alert-danger">KHÔNG CÓ SỰ KIỆN NÀO!</div>
-{% endif %} {% endblock %}
+{% endif %}
+<script>
+    window.onpageshow = function(event) {
+    if (event.persisted) {
+        let modal = document.getElementById("notifyPutTicketInCartModal");
+        let modalInstance = bootstrap.Modal.getInstance(modal);
+        if (modalInstance) {
+            modalInstance.hide();
+        }
+    }
+};
+</script>
+{% endblock %}

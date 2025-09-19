@@ -1,11 +1,16 @@
+import hashlib
+import hmac
+import urllib
+import uuid
+import math
+
 from flask import render_template, request, redirect, session, jsonify
 from app import app, dao, login, utils
-import math
 from datetime import datetime
 from flask_login import login_user, logout_user, login_required
 from urllib.parse import urlencode
 from app.models import UserRole, Comment
-
+from app.vnpay import VNPAY
 
 @app.route("/")
 def index(): 
@@ -140,20 +145,19 @@ def add_to_ticket_cart():
     normal_quantity = request.json.get('normal_quantity')
 
     if id in ticket_cart:
-        ticket_cart[id]['normal_quantity'] += 1;
+        ticket_cart[id]['normal_quantity'] += normal_quantity
+        ticket_cart[id]['vip_quantity'] += vip_quantity
     else:
         ticket_cart[id] = {
             "id": id,
             "event_name": event_name,
             "vip_price": vip_price,
-            "vip_quantity": 0,
+            "vip_quantity": vip_quantity,
             "normal_price": normal_price,
-            "normal_quantity": 1
+            "normal_quantity": normal_quantity
         }
 
     session['ticket_cart'] = ticket_cart
-    print(ticket_cart)
-
     return jsonify(utils.stats_cart(ticket_cart))
 
 @app.context_processor
@@ -204,15 +208,59 @@ def delete_ticket_cart(event_id):
 @login_required
 def pay():
     ticket_cart = session.get('ticket_cart')
+    if not ticket_cart:
+        return jsonify({'status': 400, 'message': 'Giỏ vé rỗng!'})
 
-    try:
-        dao.add_ticket(ticket_cart)
-    except:
-        return jsonify({'status': 500})
+    cart_stats = utils.stats_cart(ticket_cart)
+    amount = int(cart_stats['total_amount']) * 100  # VNPAY yêu cầu đơn vị VNĐ * 100
+
+    vnp = VNPAY(
+        app.config['VNPAY_TMN_CODE'],
+        app.config['VNPAY_HASH_SECRET_KEY'],
+        app.config['VNPAY_PAYMENT_URL'],
+        app.config['VNPAY_RETURN_URL']
+    )
+
+    vnp.add_param('vnp_Version', '2.1.0')
+    vnp.add_param('vnp_Command', 'pay')
+    vnp.add_param('vnp_TmnCode', app.config['VNPAY_TMN_CODE'])
+    vnp.add_param('vnp_Amount', str(amount))
+    vnp.add_param('vnp_CurrCode', 'VND')
+    vnp.add_param('vnp_TxnRef', str(uuid.uuid4()))  # Mã giao dịch unique
+    vnp.add_param('vnp_OrderInfo', f'Thanh toan don hang cua {session["_user_id"]}')
+    vnp.add_param('vnp_OrderType', 'other')
+    vnp.add_param('vnp_Locale', 'vn')
+    vnp.add_param('vnp_ReturnUrl', app.config['VNPAY_RETURN_URL'])
+    vnp.add_param('vnp_IpAddr', request.remote_addr)
+    vnp.add_param('vnp_CreateDate', datetime.now().strftime('%Y%m%d%H%M%S'))
+
+    payment_url = vnp.get_payment_url()
+    return jsonify({'status': 200, 'payment_url': payment_url})
+
+@app.route('/vnpay_return')
+def vnpay_return():
+    inputData = dict(request.args)
+    vnp_SecureHash = inputData.pop('vnp_SecureHash', None)
+
+    sortedData = sorted(inputData.items())
+    queryString = urllib.parse.urlencode(sortedData)
+
+    hashValue = hmac.new(
+        bytes(app.config['VNPAY_HASH_SECRET_KEY'], 'utf-8'),
+        queryString.encode('utf-8'),
+        hashlib.sha512
+    ).hexdigest()
+
+    if hashValue == vnp_SecureHash:
+        if inputData['vnp_ResponseCode'] == '00':
+            # Thanh toán thành công -> lưu vé
+            dao.add_ticket(session.get('ticket_cart'))
+            session.pop('ticket_cart', None)
+            return render_template("layout/payment_success.html", data=inputData)
+        else:
+            return render_template("layout/payment_fail.html", data=inputData)
     else:
-        del session['ticket_cart']
-        return jsonify({'status': 200})
-
+        return "Sai chữ ký hash!"
 @app.route('/event/<int:event_id>')
 def event_details(event_id):
     return render_template("layout/event_details.html",
@@ -232,6 +280,8 @@ def add_comment(event_id):
             "avatar": c.user.avatar
         }
     })
+
+
 if __name__ == '__main__':
     from app import admin
     app.run(debug=True)
