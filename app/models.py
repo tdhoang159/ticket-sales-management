@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean, ForeignKey, Enum, Date, BigInteger
+from certifi import contents
+from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean, ForeignKey, Enum, Date, BigInteger, false
 from sqlalchemy.orm import relationship
 from app import app, db
 from enum import Enum as ClassEnum
@@ -32,7 +33,7 @@ class User(db.Model, UserMixin):
     user_role = Column(Enum(UserRole), default=UserRole.USER)
 
     tickets = relationship('Ticket', backref='user', lazy=True)
-
+    comments = relationship('Comment', backref='user', lazy=True)
 
 
 class Category(db.Model):
@@ -61,9 +62,11 @@ class Event(db.Model):
 
     category_id = Column(Integer, ForeignKey(Category.id), nullable=False)
     ticket_details = relationship('TicketDetail', backref='event', lazy=True)
+    comments = relationship('Comment', backref='event', lazy=True)
 
     def __str__(self):
         return self.name
+
 
 class Ticket(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -71,6 +74,7 @@ class Ticket(db.Model):
     created_date = Column(DateTime, default=datetime.now)
 
     details = relationship('TicketDetail', backref='ticket', lazy=True)
+
 
 class TicketDetail(db.Model):
     id = Column(BigInteger, primary_key=True, autoincrement=True)
@@ -85,9 +89,16 @@ class TicketDetail(db.Model):
     def ticket_code(self):
         return str(self.id).zfill(12)
 
+class Comment(db.Model):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    content = Column(String(2000), nullable=False)
+    user_id = Column(Integer, ForeignKey(User.id), nullable=False)
+    event_id = Column(Integer, ForeignKey(Event.id), nullable=False)
+    created_date = Column(DateTime, default=datetime.now)
+
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
+        #db.create_all()
 
         # import hashlib
         # import datetime
@@ -394,3 +405,11 @@ if __name__ == "__main__":
         #     db.session.add(temp_event)
         #
         # db.session.commit()
+
+
+        c1 = Comment(content='good', user_id=1, event_id=1)
+        c2 = Comment(content='nice', user_id=1, event_id=1)
+        c3 = Comment(content='not bad', user_id=1, event_id=1)
+        c4 = Comment(content='wow so cool', user_id=1, event_id=1)
+        db.session.add_all([c1, c2, c3, c4])
+        db.session.commit()

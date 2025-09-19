@@ -63,8 +63,13 @@ function deleteCart(event_id){
         fetch(`/api/ticket-cart/${event_id}`, {
             method: 'delete'
         }).then(res => res.json()).then(data => {
-            document.getElementById(`ticket-cart${event_id}`).style.display = "none";
-            updateUI(data);
+            if (data.total_quantity === 0) {
+                // Giỏ trống => reload lại để Flask render nhánh {% else %}
+                location.reload();
+            } else {
+                document.getElementById(`ticket-cart${event_id}`).remove();
+                updateUI(data);
+            }
         })
     }
 }
@@ -82,4 +87,33 @@ function pay() {
             }
         })
     }
+}
+
+function addComment(event_id) {
+    fetch(`/api/event/${event_id}/comments`, {
+        method: "post",
+        body: JSON.stringify({
+            "content": document.getElementById("comment").value
+        }),
+        headers: {
+            'Content-Type': "application/json"
+        }
+    }).then(res => res.json()).then(c => {
+        let html = `<li class="list-group-item w-75 mx-auto">
+        <div class="row">
+            <div class="col-md-1 col-4">
+                <img src="${ c.user.avatar }" class="img-fluid rounded-circle w-75 mx-auto d-block" />
+                <p class="fw-bold text-center">${ c.user.username }</p>
+            </div>
+            <div class="col-md-11 col-8">
+                <p>${ c.content }</p>
+                <p class="date small fst-italic text-muted">${ moment(c.created_date).locale("vi").fromNow() }</p>
+            </div>
+        </div>
+    </li>`;
+
+    let comments = document.getElementById("comments");
+    comments.innerHTML = html + comments.innerHTML;
+    location.reload();
+    })
 }

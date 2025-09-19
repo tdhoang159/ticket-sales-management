@@ -1,4 +1,4 @@
-from app.models import Category, Event, User, Gender, Ticket, TicketDetail, SeatType
+from app.models import Category, Event, User, Gender, Ticket, TicketDetail, SeatType, Comment
 from app import app, db
 import hashlib
 import datetime
@@ -215,6 +215,16 @@ def count_event_by_category():
 
 def get_event_by_id(id):
     return Event.query.get(id)
+
+def load_comments(event_id):
+    return Comment.query.filter(Comment.event_id.__eq__(event_id)).order_by(-Comment.id).all()
+
+def add_comment(content, event_id):
+    c = Comment(content=content, event_id=event_id, user=current_user)
+    db.session.add(c)
+    db.session.commit()
+
+    return c
 
 if __name__ == '__main__':
     with app.app_context():

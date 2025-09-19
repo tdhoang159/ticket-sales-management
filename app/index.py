@@ -4,7 +4,8 @@ import math
 from datetime import datetime
 from flask_login import login_user, logout_user, login_required
 from urllib.parse import urlencode
-from app.models import UserRole
+from app.models import UserRole, Comment
+
 
 @app.route("/")
 def index(): 
@@ -190,10 +191,12 @@ def update_ticket_cart(event_id):
 @app.route('/api/ticket-cart/<event_id>', methods=['delete'])
 def delete_ticket_cart(event_id):
     ticket_cart = session.get('ticket_cart')
-    if ticket_cart and event_id in ticket_cart:
+    if event_id in ticket_cart:
         del ticket_cart[event_id]
-
+    if ticket_cart:
         session['ticket_cart'] = ticket_cart
+    else:
+        session.pop('ticket_cart')
 
     return jsonify(utils.stats_cart(ticket_cart))
 
@@ -212,7 +215,23 @@ def pay():
 
 @app.route('/event/<int:event_id>')
 def event_details(event_id):
-    return render_template("layout/event_details.html", event=dao.get_event_by_id(event_id))
+    return render_template("layout/event_details.html",
+                           event=dao.get_event_by_id(event_id),
+                           comments = dao.load_comments(event_id))
+
+@app.route('/api/event/<int:event_id>/comments', methods=['post'])
+@login_required
+def add_comment(event_id):
+    content = request.json.get('content')
+    c = dao.add_comment(content=content, event_id=event_id)
+
+    return jsonify({
+        "content": c.content,
+        "created_date": c.created_date,
+        "user": {
+            "avatar": c.user.avatar
+        }
+    })
 if __name__ == '__main__':
     from app import admin
     app.run(debug=True)
