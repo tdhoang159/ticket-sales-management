@@ -1,67 +1,71 @@
 {% extends 'layout/base.html' %} {% block content %} {% if events %}
 <button
-  class="btn btn-primary mt-2"
-  type="button"
-  data-bs-toggle="offcanvas"
-  data-bs-target="#filterMenu" > 
-  Lọc sự kiện
+        class="btn btn-primary mt-2"
+        type="button"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#filterMenu">
+    Lọc sự kiện
 </button>
 {% include "layout/filter_event_sidebar.html" %}
 <div class="row">
-  {% for e in events %}
-  <div class="col-md-3 col-12 p-4">
-    <div class="card">
-      <img class="card-img-top" src="{{e.banner}}" alt="{{e.name}}" />
-      <div class="card-body">
-        <h4 class="card-title">{{e.name}}</h4>
-        <p class="card-text">{{e.description}}</p>
-        <p class="card-text">
-          Giá vé VIP: {{ "{:,.0f}".format(e.vip_price)}} VNĐ
-        </p>
-        <p class="card-text">
-          Giá vé thường: {{ "{:,.0f}".format(e.normal_price)}} VNĐ
-        </p>
-        <div class="d-flex justify-content-between">
-          <a href="/event/{{ e.id }}" class="btn btn-primary">Xem chi tiết</a>
-          <button
-            class="btn btn-danger"
-            onclick="add_to_cart({{ e.id }}, '{{ e.name }}', {{ e.vip_price }}, {{ e.normal_price }}, 1, 0)"
-            data-bs-toggle="modal"
-            data-bs-target="#notifyPutTicketInCartModal"
-          >
-            Đặt vé
-          </button>
-            {% include "layout/notify_put_ticket_in_cart_modal.html" %}
+    {% for e in events %}
+    <div class="col-md-3 col-12 p-4">
+        <div class="card">
+            <a href="/event/{{ e.id }}">
+                <img class="card-img-top" src="{{e.banner}}" alt="{{e.name}}"/>
+            </a>
+            <div class="card-body">
+                <a href="/event/{{ e.id }}" class="text-dark text-decoration-none">
+                    <h4 class="card-title">{{e.name}}</h4>
+                </a>
+                <p class="card-text">{{e.description}}</p>
+                <p class="card-text">
+                    Giá vé VIP: {{ "{:,.0f}".format(e.vip_price)}} VNĐ
+                </p>
+                <p class="card-text">
+                    Giá vé thường: {{ "{:,.0f}".format(e.normal_price)}} VNĐ
+                </p>
+                <div class="d-flex justify-content-between">
+                    <a href="/event/{{ e.id }}" class="btn btn-primary">Xem chi tiết</a>
+                    <button
+                            class="btn btn-danger"
+                            onclick="add_to_cart({{ e.id }}, '{{ e.name }}', {{ e.vip_price }}, {{ e.normal_price }}, 1, 0)"
+                            data-bs-toggle="modal"
+                            data-bs-target="#notifyPutTicketInCartModal"
+                    >
+                        Đặt vé
+                    </button>
+                    {% include "layout/notify_put_ticket_in_cart_modal.html" %}
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-  {% endfor %}
+    {% endfor %}
 </div>
 {% if pages > 1 %}
 <ul class="pagination">
-  <!-- Previous -->
-  <li class="page-item {% if current_page <= 1 %}disabled{% endif %}">
-    <a class="page-link"
-       href="/?page={{ current_page - 1 if current_page > 1 else 1 }}{% if base_qs %}&{{ base_qs }}{% endif %}">
-      Previous
-    </a>
-  </li>
+    <!-- Previous -->
+    <li class="page-item {% if current_page <= 1 %}disabled{% endif %}">
+        <a class="page-link"
+           href="/?page={{ current_page - 1 if current_page > 1 else 1 }}{% if base_qs %}&{{ base_qs }}{% endif %}">
+            Previous
+        </a>
+    </li>
 
-  <!-- Các trang -->
-  {% for i in range(1, pages + 1) %}
-  <li class="page-item {% if i == current_page %}active{% endif %}">
-    <a class="page-link" href="/?page={{ i }}{% if base_qs %}&{{ base_qs }}{% endif %}">{{ i }}</a>
-  </li>
-  {% endfor %}
+    <!-- Các trang -->
+    {% for i in range(1, pages + 1) %}
+    <li class="page-item {% if i == current_page %}active{% endif %}">
+        <a class="page-link" href="/?page={{ i }}{% if base_qs %}&{{ base_qs }}{% endif %}">{{ i }}</a>
+    </li>
+    {% endfor %}
 
-  <!-- Next -->
-  <li class="page-item {% if current_page >= pages %}disabled{% endif %}">
-    <a class="page-link"
-       href="/?page={{ current_page + 1 if current_page < pages else pages }}{% if base_qs %}&{{ base_qs }}{% endif %}">
-      Next
-    </a>
-  </li>
+    <!-- Next -->
+    <li class="page-item {% if current_page >= pages %}disabled{% endif %}">
+        <a class="page-link"
+           href="/?page={{ current_page + 1 if current_page < pages else pages }}{% if base_qs %}&{{ base_qs }}{% endif %}">
+            Next
+        </a>
+    </li>
 </ul>
 {% endif %} {% else %}
 <div class="alert alert-danger">KHÔNG CÓ SỰ KIỆN NÀO!</div>

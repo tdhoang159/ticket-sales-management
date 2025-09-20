@@ -7,10 +7,11 @@ import math
 from flask import render_template, request, redirect, session, jsonify
 from app import app, dao, login, utils
 from datetime import datetime
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 from urllib.parse import urlencode
-from app.models import UserRole, Comment
+from app.models import UserRole
 from app.vnpay import VNPAY
+from flask import flash
 
 @app.route("/")
 def index(): 
@@ -261,6 +262,7 @@ def vnpay_return():
             return render_template("layout/payment_fail.html", data=inputData)
     else:
         return "Sai chữ ký hash!"
+
 @app.route('/event/<int:event_id>')
 def event_details(event_id):
     return render_template("layout/event_details.html",
@@ -281,6 +283,57 @@ def add_comment(event_id):
         }
     })
 
+@app.route("/profile", methods=["get", "post"])
+@login_required
+def profile():
+    error_message = None
+    success_message = None
+    success_updateInfo_message=None
+    if request.method == "POST":
+        form_type = request.form.get("form_type")
+
+        if form_type == "update_info":
+            # Form cập nhật thông tin
+            name = request.form.get("name")
+            phone = request.form.get("phone")
+            email = request.form.get("email")
+            dob = request.form.get("dob")
+            gender = request.form.get("gender")
+            avatar = request.files.get("avatar")
+
+            dao.update_user_info(
+                user_id=current_user.id,
+                name=name,
+                phone=phone,
+                email=email,
+                dob=dob,
+                gender=gender,
+                avatar=avatar
+            )
+            success_updateInfo_message = "Cập nhật thông tin thành công!"
+
+        elif form_type == "change_password":
+            # Form đổi mật khẩu
+            current_password = request.form.get("current_password")
+            new_password = request.form.get("new_password")
+            confirm_password = request.form.get("confirm_password")
+
+            if not dao.check_password(current_user.username, current_password):
+                error_message = "Mật khẩu cũ không chính xác!"
+            elif new_password != confirm_password:
+                error_message = "Mật khẩu xác nhận không khớp!"
+            else:
+                dao.change_password(current_user.id, new_password)
+                success_message = "Đổi mật khẩu thành công!"
+
+    return render_template(
+        "layout/profile.html",
+        user=current_user,
+        error_message=error_message,
+        success_message=success_message,
+        success_updateInfo_message=success_updateInfo_message,
+        show_change_password=True
+    )
 
 if __name__ == '__main__':
     from app import admin

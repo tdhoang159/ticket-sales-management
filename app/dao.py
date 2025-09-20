@@ -139,7 +139,7 @@ def add_user(name, phone, email, gender, dob, username, password, avatar=None):
 
     dob_confirm = None
     if dob:
-        dob_confirm = datetime.datetime.strptime(dob, "%Y-%m-%d").date()
+        dob_confirm = datetime.strptime(dob, "%Y-%m-%d").date()
 
     avatar_confirm = None
     if (avatar):
@@ -225,6 +225,44 @@ def add_comment(content, event_id):
     db.session.commit()
 
     return c
+
+def update_user_info(user_id, name, phone, email, dob, gender, avatar=None):
+    u = User.query.get(user_id)
+    if u:
+        u.name = name
+        u.phone = phone
+        u.email = email
+
+        if dob:
+            u.dob = datetime.strptime(dob, "%Y-%m-%d").date()
+
+        if gender == "MALE":
+            u.gender = Gender.MALE
+        elif gender == "FEMALE":
+            u.gender = Gender.FEMALE
+        else:
+            u.gender = Gender.OTHER
+
+        if avatar:
+            result = cloudinary.uploader.upload(avatar)
+            u.avatar = result.get("secure_url")
+
+        db.session.commit()
+
+
+def check_password(username, password):
+    password = str(hashlib.md5(password.encode("utf-8")).hexdigest())
+    u = User.query.filter(User.username == username,
+                          User.password == password).first()
+    return u is not None
+
+
+def change_password(user_id, new_password):
+    u = User.query.get(user_id)
+    if u:
+        u.password = str(hashlib.md5(new_password.encode("utf-8")).hexdigest())
+        db.session.commit()
+
 
 if __name__ == '__main__':
     with app.app_context():

@@ -1,4 +1,3 @@
-from certifi import contents
 from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean, ForeignKey, Enum, Date, BigInteger
 from sqlalchemy.orm import relationship
 from app import app, db

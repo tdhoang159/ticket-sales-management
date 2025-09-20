@@ -1,0 +1,72 @@
+{% extends 'layout/base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center text-primary">Trang cá nhân</h2>
+    {% if success_updateInfo_message %}
+    <div class="mb-3 mt-3 w-50 mx-auto alert alert-success">{{ success_updateInfo_message }}</div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" class="w-50 mx-auto" action="/profile">
+        <input type="hidden" name="form_type" value="update_info">
+        <div class="form-group mb-2">
+            <label>Họ tên</label>
+            <input type="text" name="name" value="{{ user.name }}" class="form-control"/>
+        </div>
+        <div class="form-group mb-2">
+            <label>Số điện thoại</label>
+            <input type="text" name="phone" value="{{ user.phone }}" class="form-control"/>
+        </div>
+        <div class="form-group mb-2">
+            <label>Email</label>
+            <input type="email" name="email" value="{{ user.email }}" class="form-control"/>
+        </div>
+        <div class="form-group mb-2">
+            <label>Ngày sinh</label>
+            <input type="date" name="dob" value="{{ user.dob }}" class="form-control"/>
+        </div>
+        <div class="form-group mb-2">
+            <label>Giới tính</label>
+            <select name="gender" class="form-control">
+                <option value="MALE" {% if user.gender.name=="MALE" %}selected{% endif %}>Nam</option>
+                <option value="FEMALE" {% if user.gender.name=="FEMALE" %}selected{% endif %}>Nữ</option>
+                <option value="OTHER" {% if user.gender.name=="OTHER" %}selected{% endif %}>Khác</option>
+            </select>
+        </div>
+        <div class="form-group mb-2">
+            <label>Ảnh đại diện</label>
+            <input type="file" name="avatar" class="form-control" accept="image/*" onchange="previewAvatar(event)"/>
+
+            <div class="mt-2 d-flex align-items-center gap-5">
+                <!-- Avatar hiện tại -->
+                <div class="text-center">
+                    <p class="mb-1"><strong>Avatar hiện tại</strong></p>
+                    <img src="{{ user.avatar }}" id="currentAvatar" class="img-thumbnail" width="120"/>
+                </div>
+
+                <!-- Avatar mới (preview) -->
+                <div class="text-center" id="newAvatarWrapper" style="display:none;">
+                    <p class="mb-1"><strong>Avatar mới</strong></p>
+                    <img class="img-thumbnail" width="120" id="previewAvatarImg"/>
+                </div>
+            </div>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-success text-end mt-3">Cập nhật</button>
+        </div>
+    </form>
+    <!-- Nút bấm hiện form đổi mật khẩu -->
+    <div class="text-center mt-4">
+        <button class="btn btn-warning" type="button" data-bs-toggle="collapse" data-bs-target="#changePasswordForm">
+            Thay đổi mật khẩu
+        </button>
+    </div>
+    {% include "layout/change_password.html" %}
+</div>
+<script>
+    function previewAvatar(event) {
+        const wrapper = document.getElementById('newAvatarWrapper');
+        const preview = document.getElementById('previewAvatarImg');
+        preview.src = URL.createObjectURL(event.target.files[0]);
+        wrapper.style.display = "block";
+    }
+</script>
+{% endblock %}
