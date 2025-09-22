@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean, ForeignKey, Enum, Date, BigInteger
+from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean, ForeignKey, Enum, Date, BigInteger, false
 from sqlalchemy.orm import relationship
 from app import app, db
 from enum import Enum as ClassEnum
@@ -8,6 +8,7 @@ from datetime import datetime
 class UserRole(ClassEnum):
     ADMIN = 1
     USER = 2
+    ORGANIZER = 3
 
 class Gender(ClassEnum):
     MALE = 1
@@ -34,6 +35,18 @@ class User(db.Model, UserMixin):
     tickets = relationship('Ticket', backref='user', lazy=True)
     comments = relationship('Comment', backref='user', lazy=True)
 
+class Organizer(User):
+    __tablename__ = 'organizer'
+    id = Column(Integer, ForeignKey(User.id), primary_key=True)
+    company_name = Column(String(200), nullable=False, unique=True)
+    website = Column(String(200), nullable=True)
+    tax_code = Column(String(50), nullable=False, unique=True)  # Mã số thuế / giấy phép KD
+
+    events = relationship('Event', backref='organizer', lazy=True)
+
+    def __str__(self):
+        return self.company_name
+
 
 class Category(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -49,7 +62,6 @@ class Event(db.Model):
     name = Column(String(500), nullable=False)
     description = Column(String(2000), nullable=True)
     datetime = Column(DateTime, nullable=False)
-    organizer = Column(String(500), nullable=False)
     vip_price = Column(Float, nullable=True)
     normal_price = Column(Float, nullable=False)
     vip_quantity = Column(Integer, nullable=True)
@@ -59,6 +71,7 @@ class Event(db.Model):
     banner = Column(String(1000), nullable=True)
     active = Column(Boolean, default=True)
 
+    organizer_id = Column(Integer, ForeignKey(Organizer.id), nullable=False)
     category_id = Column(Integer, ForeignKey(Category.id), nullable=False)
     ticket_details = relationship('TicketDetail', backref='event', lazy=True)
     comments = relationship('Comment', backref='event', lazy=True)
@@ -80,7 +93,6 @@ class TicketDetail(db.Model):
     ticket_id = Column(Integer, ForeignKey(Ticket.id), nullable=False)
     event_id = Column(Integer, ForeignKey(Event.id), nullable=False)
     seat_type = Column(Enum(SeatType), nullable=False, default=SeatType.NORMAL)
-    quantity = Column(Integer, default=1)
     unit_price = Column(Float, default=0)
     checked_in = Column(Boolean, default=False)  # Trạng thái vé đã soát hay chưa
 
@@ -97,15 +109,34 @@ class Comment(db.Model):
 
 if __name__ == "__main__":
     with app.app_context():
-        #db.create_all()
+        db.create_all()
 
         # import hashlib
         # import datetime
-        # u = User(name="demo", phone="0123456789", email="demo@gmail.com", username="demo", user_role=UserRole.ADMIN, gender=Gender.MALE,
-        # dob=datetime.date(2004, 9, 25),  # Năm, Tháng, Ngày
+        # u = User(name="Hồ Ngọc Minh", phone="0789456123", email="minh@gmail.com", username="minh", user_role=UserRole.ORGANIZER, gender=Gender.MALE,
+        # dob=datetime.date(2004, 8, 12),  # Năm, Tháng, Ngày
         # password= str(hashlib.md5("123456".encode('utf-8')).hexdigest()))
         #
         # db.session.add(u)
+        # db.session.commit()
+
+        # import hashlib
+        # import datetime
+        # o = Organizer(
+        #     name="Hồ Ngọc Minh",
+        #     phone="0789456123",
+        #     email="minh@gmail.com",
+        #     username="minh_event",
+        #     password=str(hashlib.md5("123456".encode('utf-8')).hexdigest()),
+        #     gender=Gender.MALE,
+        #     dob=datetime.date(2004, 8, 12),
+        #     user_role=UserRole.ORGANIZER,
+        #     company_name="Minh Event",
+        #     website="minhevent.com.vn",
+        #     tax_code="KPKD123456"
+        # )
+        #
+        # db.session.add(o)
         # db.session.commit()
         
         # c1 = Category(name="Nghệ thuật - giải trí")
@@ -406,9 +437,9 @@ if __name__ == "__main__":
         # db.session.commit()
 
 
-        c1 = Comment(content='good', user_id=1, event_id=1)
-        c2 = Comment(content='nice', user_id=1, event_id=1)
-        c3 = Comment(content='not bad', user_id=1, event_id=1)
-        c4 = Comment(content='wow so cool', user_id=1, event_id=1)
-        db.session.add_all([c1, c2, c3, c4])
-        db.session.commit()
+        # c1 = Comment(content='good', user_id=1, event_id=1)
+        # c2 = Comment(content='nice', user_id=1, event_id=1)
+        # c3 = Comment(content='not bad', user_id=1, event_id=1)
+        # c4 = Comment(content='wow so cool', user_id=1, event_id=1)
+        # db.session.add_all([c1, c2, c3, c4])
+        # db.session.commit()

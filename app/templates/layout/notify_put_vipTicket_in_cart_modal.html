@@ -1,0 +1,30 @@
+<!-- Modal yêu cầu đăng nhập -->
+<div class="modal fade" id="notifyPutVipTicketInCartModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notifyPutVipTicketInCartModalLabel">Thông báo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="fw-bold text-danger"> &#10060; Đã hết vé THƯỜNG của sự kiện này! <br/> Bạn có muốn thêm vé VIP
+                    của sự kiện này vào giỏ vé không?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Không
+                </button>
+                <a class="btn btn-primary"
+                   onclick="handleAddVipToCart({{ e.id }}, '{{ e.name }}', {{ e.vip_price }})">Có</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        function handleAddVipToCart(id, name, vip_price) {
+            add_to_cart(id, name, vip_price, 0, 0, 1);
+            setTimeout(() => {
+                window.location.href = "/ticket-cart";
+            }, 200); // 0.5 giây
+        }
+    </script>
+</div>

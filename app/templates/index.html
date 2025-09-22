@@ -16,26 +16,59 @@
             </a>
             <div class="card-body">
                 <a href="/event/{{ e.id }}" class="text-dark text-decoration-none">
-                    <h4 class="card-title">{{e.name}}</h4>
+                    <h4 class="card-title fw-bold">{{e.name}}</h4>
                 </a>
                 <p class="card-text">{{e.description}}</p>
-                <p class="card-text">
-                    Giá vé VIP: {{ "{:,.0f}".format(e.vip_price)}} VNĐ
+
+                {% if e.vip_quantity == 0 and e.normal_quantity == 0 %}
+                <div class="alert alert-danger fw-bold text-center">
+                    Đã bán hết vé
+                </div>
+                {% else %}
+                <!-- Giá vé VIP -->
+                {% if e.vip_quantity > 0 %}
+                <p class="card-text text-success fw-bold">
+                    Giá vé VIP: {{ "{:,.0f}".format(e.vip_price) }} VNĐ
                 </p>
-                <p class="card-text">
-                    Giá vé thường: {{ "{:,.0f}".format(e.normal_price)}} VNĐ
+                {% else %}
+                <p class="card-text text-danger fw-bold">
+                    Đã hết vé VIP. Còn vé THƯỜNG
                 </p>
+                {% endif %}
+
+                <!-- Giá vé thường -->
+                {% if e.normal_quantity > 0 %}
+                <p class="card-text text-success fw-bold">
+                    Giá vé THƯỜNG: {{ "{:,.0f}".format(e.normal_price) }} VNĐ
+                </p>
+                {% else %}
+                <p class="card-text text-danger fw-bold">
+                    Đã hết vé THƯỜNG. Còn vé VIP
+                </p>
+                {% endif %}
+                {% endif %}
                 <div class="d-flex justify-content-between">
-                    <a href="/event/{{ e.id }}" class="btn btn-primary">Xem chi tiết</a>
+                    <a href="/event/{{ e.id }}" class="btn btn-primary fw-bold">Xem chi tiết</a>
+                    {% if e.vip_quantity != 0 or e.normal_quantity != 0 %}
                     <button
-                            class="btn btn-danger"
-                            onclick="add_to_cart({{ e.id }}, '{{ e.name }}', {{ e.vip_price }}, {{ e.normal_price }}, 1, 0)"
-                            data-bs-toggle="modal"
-                            data-bs-target="#notifyPutTicketInCartModal"
-                    >
+                            class="btn btn-danger fw-bold"
+                            {% if e.normal_quantity== 0 and e.vip_quantity> 0 %}
+                                data-bs-toggle="modal"
+                                data-bs-target="#notifyPutVipTicketInCartModal"
+                            {% else %}
+                                onclick="add_to_cart({{ e.id }}, '{{ e.name }}', {{ e.vip_price }}, {{ e.normal_price }}, 1, 0)"
+                                data-bs-toggle="modal"
+                                data-bs-target="#notifyPutNormalTicketInCartModal"
+                            {% endif %}
+                        >
                         Đặt vé
                     </button>
-                    {% include "layout/notify_put_ticket_in_cart_modal.html" %}
+                        {% if e.normal_quantity == 0 and e.vip_quantity > 0 %}
+                            {% include "layout/notify_put_vipTicket_in_cart_modal.html" %}
+                        {% else %}
+                            {% include "layout/notify_put_normalTicket_in_cart_modal.html" %}
+                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -73,10 +106,15 @@
 <script>
     window.onpageshow = function(event) {
     if (event.persisted) {
-        let modal = document.getElementById("notifyPutTicketInCartModal");
-        let modalInstance = bootstrap.Modal.getInstance(modal);
-        if (modalInstance) {
-            modalInstance.hide();
+        let modalNormal = document.getElementById("notifyPutNormalTicketInCartModal");
+        let modalVip = document.getElementById("notifyPutVipTicketInCartModal");
+        let modalInstanceNormal = bootstrap.Modal.getInstance(modalNormal);
+        let modalInstanceVip = bootstrap.Modal.getInstance(modalVip);
+        if (modalInstanceNormal) {
+            modalInstanceNormal.hide();
+        }
+        if (modalInstanceVip) {
+            modalInstanceVip.hide();
         }
     }
 };

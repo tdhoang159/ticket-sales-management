@@ -1,0 +1,68 @@
+{% extends "layout/base.html" %}
+{% block content %}
+<a href="/my-tickets" class="btn btn-outline-secondary mt-3">⬅ Quay lại</a>
+<div class="container mt-4">
+    <h2 class="text-success">🎟 Vé sự kiện: {{ event.name }}</h2>
+    <p><strong>Thời gian:</strong> {{ event.datetime.strftime("%d/%m/%Y %H:%M") }}</p>
+    <p><strong>Địa điểm:</strong> {{ event.address_detail }}, {{ event.province }}</p>
+
+    {% if tickets %}
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" id="ticketTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="normal-tab" data-bs-toggle="tab" data-bs-target="#normal"
+                type="button" role="tab">VÉ THƯỜNG ({{ tickets|selectattr("seat_type.value", "equalto", "NORMAL")|list|length }} vé)</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="vip-tab" data-bs-toggle="tab" data-bs-target="#vip"
+                type="button" role="tab">VÉ VIP ({{ tickets|selectattr("seat_type.value", "equalto", "VIP")|list|length }} vé)</button>
+        </li>
+    </ul>
+
+    <!-- Tab content -->
+    <div class="tab-content">
+        <!-- Vé Thường -->
+        <div class="tab-pane fade show active" id="normal" role="tabpanel">
+            <div class="row">
+                {% for t in tickets if t.seat_type.value == "NORMAL" %}
+                <div class="col-md-4 mb-3">
+                    <div class="card shadow-sm border-success">
+                        <div class="card-body">
+                            <h5 class="card-title text-success fw-bold">Vé Thường</h5>
+                            <p class="card-text">
+                                <strong>Giá vé:</strong> {{ "{:,.0f}".format(t.unit_price) }} VND<br>
+                                <strong>Mã vé:</strong> {{ t.ticket_code }}<br>
+                                <small class="text-muted">Ngày mua: {{ t.ticket.created_date.strftime("%d/%m/%Y %H:%M") }}</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Vé VIP -->
+        <div class="tab-pane fade" id="vip" role="tabpanel">
+            <div class="row">
+                {% for t in tickets if t.seat_type.value == "VIP" %}
+                <div class="col-md-4 mb-3">
+                    <div class="card shadow-sm border-warning">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning fw-bold">Vé VIP</h5>
+                            <p class="card-text">
+                                <strong>Giá vé:</strong> {{ "{:,.0f}".format(t.unit_price) }} VND<br>
+                                <strong>Mã vé:</strong> {{ t.ticket_code }}<br>
+                                <small class="text-muted">Ngày mua: {{ t.ticket.created_date.strftime("%d/%m/%Y %H:%M") }}</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">Bạn chưa có vé nào cho sự kiện này.</div>
+    {% endif %}
+</div>
+{% endblock %}

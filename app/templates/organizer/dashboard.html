@@ -1,0 +1,36 @@
+{% extends "layout/base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-success">🎪 Sự kiện của bạn</h2>
+    <a href="/organizer/events/create" class="btn btn-success mt-3">+ Tạo sự kiện mới</a>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên sự kiện</th>
+                <th>Thời gian</th>
+                <th>Địa điểm</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for e in events %}
+            <tr>
+                <td>{{ e.id }}</td>
+                <td>{{ e.name }}</td>
+                <td>{{ e.datetime.strftime("%d/%m/%Y %H:%M") }}</td>
+                <td>{{ e.address_detail }}, {{ e.province }}</td>
+                <td>
+                    <a href="/organizer/events/{{ e.id }}/update" class="btn btn-warning btn-sm">Sửa</a>
+                    <form action="/organizer/events/{{ e.id }}/delete" method="post" style="display:inline;">
+                        <button class="btn btn-danger btn-sm" onclick="return confirm('Xoá sự kiện này?')">Xoá</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5" class="text-center">Chưa có sự kiện nào</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

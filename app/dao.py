@@ -58,7 +58,7 @@ def load_events(cate_id=None, kw=None, page=1, cate_ids=None, price_min=None, pr
     if (cate_id):
         query = query.filter(Event.category_id == cate_id)
 
-    page_size = app.config.get("PAGE_SIZE")
+    page_size = app.config.get("PAGE_SIZE_HOME")
     start = (page - 1) * page_size
     query = query.slice(start, start + page_size)
 
@@ -154,32 +154,40 @@ def add_user(name, phone, email, gender, dob, username, password, avatar=None):
 
 def add_ticket(cart):
     if cart:
+        # Tạo ticket (1 giao dịch mua)
         t = Ticket(user=current_user)
         db.session.add(t)
+        #db.session.flush()  # để lấy id ngay
 
         for c in cart.values():
             event_id = c['id']
+            event = Event.query.get(event_id)
+
             # Nếu có vé thường
             if c['normal_quantity'] > 0:
-                d_normal = TicketDetail(
-                    quantity=c['normal_quantity'],
-                    unit_price=c['normal_price'],
-                    ticket=t,
-                    event_id=event_id,
-                    seat_type=SeatType.NORMAL
-                )
-                db.session.add(d_normal)
+                for i in range(c['normal_quantity']):
+                    d_normal = TicketDetail(
+                        unit_price=c['normal_price'],
+                        ticket=t,
+                        event_id=event_id,
+                        seat_type=SeatType.NORMAL,
+                        checked_in=False  # mặc định chưa check-in
+                    )
+                    db.session.add(d_normal)
+                event.normal_quantity -= c['normal_quantity']
 
             # Nếu có vé VIP
             if c['vip_quantity'] > 0:
-                d_vip = TicketDetail(
-                    quantity=c['vip_quantity'],
-                    unit_price=c['vip_price'],
-                    ticket=t,
-                    event_id=event_id,
-                    seat_type=SeatType.VIP
-                )
-                db.session.add(d_vip)
+                for i in range(c['vip_quantity']):
+                    d_vip = TicketDetail(
+                        unit_price=c['vip_price'],
+                        ticket=t,
+                        event_id=event_id,
+                        seat_type=SeatType.VIP,
+                        checked_in=False
+                    )
+                    db.session.add(d_vip)
+                event.vip_quantity -= c['vip_quantity']
 
         db.session.commit()
 
@@ -263,7 +271,95 @@ def change_password(user_id, new_password):
         u.password = str(hashlib.md5(new_password.encode("utf-8")).hexdigest())
         db.session.commit()
 
+def get_events_by_user(user_id, page=1):
+    subq = (
+        db.session.query(
+            TicketDetail.event_id.label('event_id'),
+            func.max(Ticket.created_date).label('last_purchase')
+        )
+        .join(Ticket, Ticket.id == TicketDetail.ticket_id)
+        .filter(Ticket.user_id == user_id)
+        .group_by(TicketDetail.event_id)
+        .subquery()
+    )
 
+    base_query = (
+        db.session.query(Event)
+        .join(subq, Event.id == subq.c.event_id)
+        .order_by(subq.c.last_purchase.desc())
+    )
+
+    page_size = app.config.get("PAGE_SIZE_MY_TICKETS")
+    total = base_query.count()
+
+    events = (
+        base_query
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+
+    return events, total
+
+
+def get_tickets_by_user_and_event(user_id, event_id):
+    # Lấy chi tiết vé user mua cho 1 event
+    return (db.session.query(TicketDetail)
+            .join(Ticket, Ticket.id == TicketDetail.ticket_id)
+            .filter(Ticket.user_id == user_id, TicketDetail.event_id == event_id)
+            .order_by(Ticket.created_date.desc())
+            .all())
+
+def get_events_by_organizer(organizer_id):
+    return Event.query.filter(Event.organizer_id == organizer_id).all()
+
+def add_event(name, description, datetime, vip_price, normal_price,
+              vip_quantity, normal_quantity, address_detail, province, banner, category_id, organizer_id):
+    banner_confirm = None
+    if (banner):
+        result = cloudinary.uploader.upload(banner)
+        banner_confirm = result.get('secure_url')
+    e = Event(
+        name=name,
+        description=description,
+        datetime=datetime,
+        vip_price=vip_price,
+        normal_price=normal_price,
+        vip_quantity=vip_quantity,
+        normal_quantity=normal_quantity,
+        address_detail=address_detail,
+        province=province,
+        banner=banner_confirm,
+        category_id=category_id,
+        organizer_id=organizer_id
+    )
+    db.session.add(e)
+    db.session.commit()
+    return e
+
+def update_event(event_id, organizer_id, **kwargs):
+    e = Event.query.filter_by(id=event_id, organizer_id=organizer_id).first()
+    if not e:
+        return None
+
+    for key, value in kwargs.items():
+        if key == 'banner' and value:  # Nếu có file banner mới
+            # upload file lên Cloudinary
+            upload_result = cloudinary.uploader.upload(value)
+            setattr(e, key, upload_result['secure_url'])
+        elif key != 'banner':  # các trường khác
+            setattr(e, key, value)
+
+    db.session.commit()
+    return e
+
+def delete_event(event_id, organizer_id):
+    e = Event.query.filter_by(id=event_id, organizer_id=organizer_id).first()
+    if e:
+        db.session.delete(e)
+        db.session.commit()
+        return True
+    return False
 if __name__ == '__main__':
     with app.app_context():
         print(revenue_stats_by_events())

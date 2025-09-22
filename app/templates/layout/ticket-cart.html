@@ -23,12 +23,12 @@
         <td class="text-center">{{ "{:,.0f}".format(c.vip_price)}}</td>
         <td>
             <input type="number" value="{{ c.vip_quantity }}" class="form-control form-control-md w-50 mx-auto d-block"
-                   onblur="updateCart({{ c.id }}, this, 'vip', {{ c.vip_price }}, {{ c.normal_price }})"/>
+                   data-type="vip" min="0" onchange="updateCart({{ c.id }}, this, 'vip', {{ c.vip_price }}, {{ c.normal_price }})"/>
         </td>
         <td class="text-center">{{ "{:,.0f}".format(c.normal_price)}}</td>
         <td>
             <input type="number" value="{{ c.normal_quantity }}" class="form-control form-control-md w-50 mx-auto d-block"
-                   onblur="updateCart({{ c.id }}, this, 'normal', {{ c.vip_price }}, {{ c.normal_price }})" />
+                   data-type="normal" min="0" onchange="updateCart({{ c.id }}, this, 'normal', {{ c.vip_price }}, {{ c.normal_price }})" />
         </td>
         <td class="text-center" id="total-quantity-{{ c.id }}">{{ c.vip_quantity + c.normal_quantity }}</td>
         <td class="text-center" id="total-amount-{{ c.id }}">
@@ -59,7 +59,7 @@
 {% include "layout/login_required_modal.html" %}
 {% endif %}
 {% else %}
-<div class="alert alert-danger mt-1">KHÔNG CÓ VÉ NÀO TRONG GIỎ!</div>
+<div class="alert alert-danger text-center fw-bold">KHÔNG CÓ VÉ NÀO TRONG GIỎ!</div>
 {% endif%}
 
 {% endblock %}

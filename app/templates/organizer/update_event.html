@@ -1,0 +1,90 @@
+{% extends "layout/base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-warning">Cập nhật sự kiện</h2>
+    <!-- cần enctype để upload file -->
+    <form method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label class="form-label">Tên sự kiện</label>
+            <input type="text" name="name" value="{{ event.name }}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Mô tả</label>
+            <textarea name="description" class="form-control">{{ event.description }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Thời gian</label>
+            <input type="datetime-local" name="datetime"
+                   value="{{ event.datetime.strftime('%Y-%m-%dT%H:%M') }}" class="form-control" required>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Giá vé VIP</label>
+                <input type="number" name="vip_price" value="{{ event.vip_price }}" class="form-control">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Giá vé thường</label>
+                <input type="number" name="normal_price" value="{{ event.normal_price }}" class="form-control">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Số lượng vé VIP</label>
+                <input type="number" name="vip_quantity" value="{{ event.vip_quantity }}" class="form-control">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Số lượng vé thường</label>
+                <input type="number" name="normal_quantity" value="{{ event.normal_quantity }}" class="form-control">
+            </div>
+        </div>
+        <div class="mb-3">
+            <label>Địa chỉ chi tiết</label>
+            <input type="text" name="address_detail" value="{{ event.address_detail }}" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label>Tỉnh/Thành phố</label>
+            <input type="text" name="province" class="form-control" value="{{ event.province }}">
+        </div>
+        <div class="mb-3">
+            <label>Danh mục</label>
+            <select name="category_id" class="form-control">
+                {% for c in categories %}
+                    <option value="{{ c.id }}" {% if c.id == event.category_id %}selected{% endif %}>
+                        {{ c.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Hiện banner cũ -->
+        <div class="mb-3">
+            <label>Banner hiện tại</label><br>
+            <img src="{{ event.banner }}" class="img-fluid rounded shadow" style="max-height:200px;">
+        </div>
+
+        <!-- Upload banner mới -->
+        <div class="mb-3">
+            <label>Banner mới (Upload)</label>
+            <input type="file" name="banner" class="form-control" onchange="previewBanner(event)">
+        </div>
+
+        <!-- Preview banner mới -->
+        <div class="text-center" id="bannerPreviewWrapper" style="display:none;">
+            <p class="mb-1"><strong>Banner mới xem trước</strong></p>
+            <img id="bannerPreviewImg" class="img-fluid rounded shadow" style="max-height:200px;"/>
+        </div>
+
+        <button type="submit" class="btn btn-warning mt-3">Cập nhật</button>
+        <a href="/organizer/dashboard" class="btn btn-secondary mt-3">Quay lại</a>
+    </form>
+</div>
+
+<script>
+    function previewBanner(event) {
+        const wrapper = document.getElementById('bannerPreviewWrapper');
+        const preview = document.getElementById('bannerPreviewImg');
+        preview.src = URL.createObjectURL(event.target.files[0]);
+        wrapper.style.display = "block";
+    }
+</script>
+{% endblock %}

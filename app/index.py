@@ -43,7 +43,7 @@ def index():
     current_page = request.args.get("page", 1)
 
     #Số event hiện trên 1 trang
-    page_size = app.config.get("PAGE_SIZE", 8)
+    page_size = app.config.get("PAGE_SIZE_HOME", 8)
 
     ticket_type = request.args.getlist('ticket_type')
 
@@ -289,6 +289,8 @@ def profile():
     error_message = None
     success_message = None
     success_updateInfo_message=None
+    show_change_password = False
+
     if request.method == "POST":
         form_type = request.form.get("form_type")
 
@@ -311,6 +313,7 @@ def profile():
                 avatar=avatar
             )
             success_updateInfo_message = "Cập nhật thông tin thành công!"
+            show_change_password = False
 
         elif form_type == "change_password":
             # Form đổi mật khẩu
@@ -318,6 +321,7 @@ def profile():
             new_password = request.form.get("new_password")
             confirm_password = request.form.get("confirm_password")
 
+            show_change_password = True
             if not dao.check_password(current_user.username, current_password):
                 error_message = "Mật khẩu cũ không chính xác!"
             elif new_password != confirm_password:
@@ -332,8 +336,133 @@ def profile():
         error_message=error_message,
         success_message=success_message,
         success_updateInfo_message=success_updateInfo_message,
-        show_change_password=True
+        show_change_password = show_change_password
     )
+
+@app.route("/my-tickets")
+@login_required
+def my_tickets():
+    page = request.args.get("page", 1, type=int)
+    page_size = app.config.get("PAGE_SIZE_MY_TICKETS", 5)
+
+    events, total = dao.get_events_by_user(current_user.id, page=page)
+
+    return render_template("layout/my_tickets.html",
+                           events=events,
+                           pages=math.ceil(total / page_size),
+                           current_page=page)
+
+
+@app.route("/my-tickets/<int:event_id>")
+@login_required
+def my_tickets_details(event_id):
+    event = dao.get_event_by_id(event_id)
+    tickets = dao.get_tickets_by_user_and_event(current_user.id, event_id)
+    return render_template("layout/my_ticket_details.html", event=event, tickets=tickets)
+
+
+@app.route('/login-organizer', methods=['get', 'post'])
+def login_organizer_process():
+    login_error_message = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        auth_user = dao.auth_user(username=username, password=password, role=UserRole.ORGANIZER)
+        if auth_user:
+            login_user(auth_user)
+            return redirect('/organizer/dashboard')
+        else:
+            login_error_message = "Sai tên đăng nhập hoặc mật khẩu!"
+
+    return render_template("layout/login_organizer.html", login_error_message=login_error_message)
+
+
+@app.route('/organizer/dashboard')
+@login_required
+def organizer_dashboard():
+    if current_user.user_role != UserRole.ORGANIZER:
+        return "Bạn không có quyền truy cập!", 403
+
+    events = dao.get_events_by_organizer(current_user.id)
+    return render_template("organizer/dashboard.html", events=events)
+
+
+# Thêm sự kiện mới
+@app.route('/organizer/events/create', methods=['get', 'post'])
+@login_required
+def create_event():
+    if current_user.user_role != UserRole.ORGANIZER:
+        return "Bạn không có quyền truy cập!", 403
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        description = request.form.get('description')
+        datetime_str = request.form.get('datetime')
+        vip_price = request.form.get('vip_price', type=float)
+        normal_price = request.form.get('normal_price', type=float)
+        vip_quantity = request.form.get('vip_quantity', type=int)
+        normal_quantity = request.form.get('normal_quantity', type=int)
+        address_detail = request.form.get('address_detail')
+        province = request.form.get('province')
+        category_id = request.form.get('category_id')
+        banner = request.files.get('banner')
+
+        event_datetime = datetime.fromisoformat(datetime_str)
+
+        dao.add_event(name, description, event_datetime, vip_price, normal_price,
+                      vip_quantity, normal_quantity, address_detail, province,
+                      banner, category_id, current_user.id)
+
+        return redirect('/organizer/dashboard')
+
+    return render_template('organizer/create_event.html', categories=dao.load_categories(), provinces=dao.load_provinces())
+
+
+# Cập nhật sự kiện
+@app.route('/organizer/events/<int:event_id>/update', methods=['get', 'post'])
+@login_required
+def update_event(event_id):
+    if current_user.user_role != UserRole.ORGANIZER:
+        return "Bạn không có quyền!", 403
+
+    event = dao.get_event_by_id(event_id)
+    if not event or event.organizer_id != current_user.id:
+        return "Không tìm thấy sự kiện hoặc bạn không có quyền!", 404
+
+    if request.method == 'POST':
+        dao.update_event(
+            event_id=event_id,
+            organizer_id=current_user.id,
+            name=request.form.get('name'),
+            description=request.form.get('description'),
+            datetime=datetime.fromisoformat(request.form.get('datetime')),
+            vip_price=request.form.get('vip_price', type=float),
+            normal_price=request.form.get('normal_price', type=float),
+            vip_quantity=request.form.get('vip_quantity', type=int),
+            normal_quantity=request.form.get('normal_quantity', type=int),
+            address_detail=request.form.get('address_detail'),
+            province=request.form.get('province'),
+            banner=request.files.get('banner'),
+            category_id=request.form.get('category_id')
+        )
+        return redirect('/organizer/dashboard')
+
+    return render_template('organizer/update_event.html', event=event, categories=dao.load_categories())
+
+
+# Xoá sự kiện
+@app.route('/organizer/events/<int:event_id>/delete', methods=['post'])
+@login_required
+def delete_event(event_id):
+    if current_user.user_role != UserRole.ORGANIZER:
+        return "Bạn không có quyền!", 403
+
+    success = dao.delete_event(event_id, current_user.id)
+    if not success:
+        return "Không thể xoá sự kiện!", 404
+
+    return redirect('/organizer/dashboard')
 
 if __name__ == '__main__':
     from app import admin

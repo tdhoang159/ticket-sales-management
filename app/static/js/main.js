@@ -47,8 +47,8 @@ function updateCart(event_id, obj, type, vip_price, normal_price){
     }).then(res => res.json()).then(data => {
         updateUI(data);
 
-        let vipQty = parseInt(document.querySelector(`#ticket-cart${event_id} input[onblur*="vip"]`).value);
-        let normalQty = parseInt(document.querySelector(`#ticket-cart${event_id} input[onblur*="normal"]`).value);
+        let vipQty = parseInt(document.querySelector(`#ticket-cart${event_id} input[data-type="vip"]`).value);
+        let normalQty = parseInt(document.querySelector(`#ticket-cart${event_id} input[data-type="normal"]`).value);
 
         // Tính lại tổng số vé & tổng tiền
         let totalQty = vipQty + normalQty;
@@ -76,7 +76,25 @@ function deleteCart(event_id){
     }
 }
 
+function validateCart() {
+    // Lấy tất cả các hàng sự kiện trong giỏ
+    let rows = document.querySelectorAll("tr[id^='ticket-cart']");
+    for (let row of rows) {
+        let vipQty = parseInt(row.querySelector("input[data-type='vip']").value) || 0;
+        let normalQty = parseInt(row.querySelector("input[data-type='normal']").value) || 0;
+
+        if (vipQty === 0 && normalQty === 0) {
+            alert("Mỗi sự kiện phải chọn ít nhất 1 vé VIP hoặc vé thường!");
+            return false; // Ngăn không cho tiếp tục
+        }
+    }
+    return true; // Hợp lệ, cho phép thanh toán
+}
+
 function pay() {
+    if (!validateCart()) {
+        return; // Ngăn submit
+    }
     if(confirm("Bạn có chắc chắn muốn thanh toán không? ") === true){
         fetch('/api/pay', {method: 'POST'})
         .then(res => res.json())

@@ -1,0 +1,50 @@
+{% extends "layout/base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="text-success text-center"> Vé của tôi</h2>
+
+  {% if events %}
+    <ul class="list-group mt-3">
+      {% for e in events %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <h4 class="fw-bold">{{ e.name }}</h4>
+              <h6 class="text-muted">{{ e.organizer }}</h6>
+            <bg class="text-muted">Thời gian: {{ e.datetime.strftime("%d/%m/%Y %H:%M") }}</bg><br>
+            <bg class="text-muted">Địa điểm: {{ e.address_detail }}, {{ e.province }}</bg>
+          </div>
+          <a href="/my-tickets/{{ e.id }}" class="btn btn-bg btn-outline-success fw-bold">🎫 Xem vé</a>
+        </li>
+      {% endfor %}
+    </ul>
+    {% if pages > 1 %}
+    <ul class="pagination mt-3 justify-content-center">
+      <!-- Previous -->
+      <li class="page-item {% if current_page <= 1 %}disabled{% endif %}">
+        <a class="page-link"
+           href="/my-tickets?page={{ current_page - 1 if current_page > 1 else 1 }}">
+          Previous
+        </a>
+      </li>
+
+      <!-- Các trang -->
+      {% for i in range(1, pages + 1) %}
+      <li class="page-item {% if i == current_page %}active{% endif %}">
+        <a class="page-link" href="/my-tickets?page={{ i }}">{{ i }}</a>
+      </li>
+      {% endfor %}
+
+      <!-- Next -->
+      <li class="page-item {% if current_page >= pages %}disabled{% endif %}">
+        <a class="page-link"
+           href="/my-tickets?page={{ current_page + 1 if current_page < pages else pages }}">
+          Next
+        </a>
+      </li>
+    </ul>
+    {% endif %}
+  {% else %}
+    <div class="alert alert-danger text-center fw-bold">BẠN CHƯA MUA BẤT KÌ VÉ CỦA SỰ HIỆN NÀO!</div>
+  {% endif %}
+</div>
+{% endblock %}
