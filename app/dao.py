@@ -387,6 +387,23 @@ def delete_event(event_id, organizer_id):
         db.session.commit()
         return True
     return False
-if __name__ == '__main__':
-    with app.app_context():
-        print(revenue_stats_by_events())
+
+def check_in_ticket(ticket_detail_id, organizer_id):
+    td = (db.session.query(TicketDetail)
+          .join(Event, Event.id == TicketDetail.event_id)
+          .filter(TicketDetail.id == ticket_detail_id,
+                  Event.organizer_id == organizer_id)
+          .first())
+
+    if not td:
+        return None, "Không tìm thấy vé"
+
+    if td.checked_in:
+        return None, "Vé đã được check-in trước đó!"
+
+    td.checked_in = True
+    db.session.commit()
+    return td, "Check-in thành công!"
+# if __name__ == '__main__':
+#     with app.app_context():
+#         print(revenue_stats_by_events())

@@ -465,6 +465,27 @@ def delete_event(event_id):
 
     return redirect('/organizer/dashboard')
 
+@app.route('/organizer/checkin', methods=['GET', 'POST'])
+@login_required
+def organizer_checkin():
+    if current_user.user_role != UserRole.ORGANIZER:
+        return "Bạn không có quyền!", 403
+
+    result_message = None
+    ticket_info = None
+
+    if request.method == 'POST':
+        ticket_id = request.form.get('ticket_id')  # nhập mã vé
+        if ticket_id:
+            td, msg = dao.check_in_ticket(ticket_id, current_user.id)
+            result_message = msg
+            ticket_info = td
+
+    return render_template("organizer/checkin.html",
+                           result_message=result_message,
+                           ticket_info=ticket_info)
+
+
 if __name__ == '__main__':
     from app import admin
     app.run(debug=True)
