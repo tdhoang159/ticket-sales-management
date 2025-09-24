@@ -12,7 +12,7 @@
             ⏰ Thời gian tổ chức lúc {{ event.datetime.strftime("%H:%M") }} -
             ngày {{ event.datetime.strftime("%d/%m/%Y") }}
         </p>
-        <p><strong>Ban tổ chức:</strong> {{ event.organizer }}</p>
+        <p><strong>Ban tổ chức:</strong> {{ event.organizer.company_name }}</p>
         <p><strong>Địa chỉ tổ chức:</strong> {{ event.address_detail }}</p>
         <p><strong>Tỉnh/ Thành phố:</strong> {{ event.province }}</p>
 

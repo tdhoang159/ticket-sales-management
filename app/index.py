@@ -119,18 +119,18 @@ def register_process():
 
     return render_template("layout/register.html", error_message=error_message)
 
-@app.route('/login-admin', methods=['post'])
-def login_admin_process():
-    login_error_message = None
-    username = request.form.get('username')
-    password = request.form.get('password')
-    auth_user = dao.auth_user(username=username, password=password, role=UserRole.ADMIN)
-
-    if(auth_user):
-        login_user(auth_user)
-        return redirect('/admin')
-    else:
-        login_error_message = "Sai tên đăng nhập hoặc mật khẩu! Vui lòng đăng nhập lại."
+# @app.route('/login-admin', methods=['post'])
+# def login_admin_process():
+#     login_error_message = None
+#     username = request.form.get('username')
+#     password = request.form.get('password')
+#     auth_user = dao.auth_user(username=username, password=password, role=UserRole.ADMIN)
+#
+#     if(auth_user):
+#         login_user(auth_user)
+#         return redirect('/admin')
+#     else:
+#         login_error_message = "Sai tên đăng nhập hoặc mật khẩu! Vui lòng đăng nhập lại."
 
 @app.route('/api/ticket-cart', methods=['post'])
 def add_to_ticket_cart():
@@ -166,7 +166,8 @@ def common_response():
     return {
         'categories': dao.load_categories(),
         'provinces': dao.load_provinces(),
-        'cart_stats': utils.stats_cart(session.get('ticket_cart'))
+        'cart_stats': utils.stats_cart(session.get('ticket_cart')),
+        'UserRole': UserRole
     }
 
 @app.route('/ticket-cart')

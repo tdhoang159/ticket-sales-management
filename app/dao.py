@@ -1,4 +1,4 @@
-from app.models import Category, Event, User, Gender, Ticket, TicketDetail, SeatType, Comment
+from app.models import Category, Event, User, Gender, Ticket, TicketDetail, SeatType, Comment, Organizer
 from app import app, db
 import hashlib
 import datetime
@@ -192,31 +192,58 @@ def add_ticket(cart):
         db.session.commit()
 
 
-def revenue_stats_by_events():
-    return ((
-                db.session.query(
-                    Event.id,
-                    Event.name,
-                    func.sum(TicketDetail.quantity * TicketDetail.unit_price),
-                    func.sum(case((TicketDetail.seat_type == SeatType.VIP, TicketDetail.quantity), else_=0)),
-                    func.sum(case((TicketDetail.seat_type == SeatType.NORMAL, TicketDetail.quantity), else_=0)),
-                    func.sum(TicketDetail.quantity)
-                )
-                .join(TicketDetail, TicketDetail.event_id.__eq__(Event.id)))
-            .order_by(Event.id)
-            .group_by(Event.id)
+# def revenue_stats_by_events():
+#     return ((
+#                 db.session.query(
+#                     Event.id,
+#                     Event.name,
+#                     func.sum(TicketDetail.quantity * TicketDetail.unit_price),
+#                     func.sum(case((TicketDetail.seat_type == SeatType.VIP, TicketDetail.quantity), else_=0)),
+#                     func.sum(case((TicketDetail.seat_type == SeatType.NORMAL, TicketDetail.quantity), else_=0)),
+#                     func.sum(TicketDetail.quantity)
+#                 )
+#                 .join(TicketDetail, TicketDetail.event_id.__eq__(Event.id)))
+#             .order_by(Event.id)
+#             .group_by(Event.id)
+#             .all())
+#
+#
+# def revenue_stats_by_time(time='month', year=datetime.now().year):
+#     return ((db.session.query(func.extract(time, Ticket.created_date),
+#                               func.sum(TicketDetail.quantity * TicketDetail.unit_price))
+#              .join(TicketDetail, TicketDetail.ticket_id.__eq__(Ticket.id)))
+#             .group_by(func.extract(time, Ticket.created_date))
+#             .filter(func.extract('year', Ticket.created_date).__eq__(year))
+#             .order_by(func.extract(time, Ticket.created_date)).all())
+
+def revenue_stats_by_event_and_organizer(time='month', year=datetime.now().year):
+    if time == 'day':
+        time_expr = func.date(Ticket.created_date)
+    elif time == 'week':
+        time_expr = func.extract('week', Ticket.created_date)
+    elif time == 'quarter':
+        time_expr = func.extract('quarter', Ticket.created_date)
+    elif time == 'year':
+        time_expr = func.extract('year', Ticket.created_date)
+    else:
+        time_expr = func.extract('month', Ticket.created_date)
+
+    return (db.session.query(
+                Organizer.id.label('organizer_id'),
+                Organizer.company_name.label('organizer'),
+                Event.name.label('event'),
+                time_expr.label('time'),
+                func.sum(case((TicketDetail.seat_type == SeatType.VIP, 1), else_=0)).label('vip_tickets'),
+                func.sum(case((TicketDetail.seat_type == SeatType.NORMAL, 1), else_=0)).label('normal_tickets'),
+                func.sum(TicketDetail.unit_price).label('revenue')
+            )
+            .join(TicketDetail, TicketDetail.event_id == Event.id)
+            .join(Ticket, TicketDetail.ticket_id == Ticket.id)
+            .join(Organizer, Event.organizer_id == Organizer.id)
+            .filter(func.extract('year', Ticket.created_date) == year)
+            .group_by(Organizer.id, Organizer.company_name, Event.name, time_expr)
+            .order_by(Organizer.company_name, Event.name, time_expr)
             .all())
-
-
-def revenue_stats_by_time(time='month', year=datetime.now().year):
-    return ((db.session.query(func.extract(time, Ticket.created_date),
-                              func.sum(TicketDetail.quantity * TicketDetail.unit_price))
-             .join(TicketDetail, TicketDetail.ticket_id.__eq__(Ticket.id)))
-            .group_by(func.extract(time, Ticket.created_date))
-            .filter(func.extract('year', Ticket.created_date).__eq__(year))
-            .order_by(func.extract(time, Ticket.created_date)).all())
-
-
 def count_event_by_category():
     return (db.session.query(Category.id, Category.name, func.count(Event.id))
             .join(Event, Event.category_id.__eq__(Category.id))).group_by(Category.id).all()

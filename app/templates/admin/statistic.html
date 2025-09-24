@@ -1,102 +1,56 @@
-{% extends 'admin/master.html' %} {% block body %}
-<h1 class="text-center text-success">THỐNG KÊ - BÁO CÁO</h1>
+{% extends 'admin/master.html' %}
+{% block body %}
+<h2>📊 Thống kê Doanh thu & Vé bán</h2>
 
-<div class="row">
-    <div class="col-md-7 col-12">
-        <table class="table">
-            <tr>
-                <th>Id</th>
-                <th>Tên sự kiện</th>
-                <th>Số vé VIP bán được</th>
-                <th>Số vé thường bán được</th>
-                <th>Tổng số vé bán được</th>
-                <th>Tổng doanh thu</th>
-            </tr>
+<form method="get" class="form-inline mb-3">
 
-            {% for s in revenue_stats_by_events %}
-            <tr>
-                <td>{{ s[0] }}</td>
-                <td>{{ s[1] }}</td>
-                <td>{{ s[3] }}</td>
-                <td>{{ s[4] }}</td>
-                <td>{{ s[5] }}</td>
-                <td>{{ s[2] }} VNĐ</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-    <div class="col-md-5 col-12">
-        <canvas id="myChart"></canvas>
-    </div>
-</div>
+    <!-- Filter theo thời gian -->
+    <label class="mr-2">Thống kê:</label>
+    <select name="time_type" class="form-control mr-2" onchange="this.form.submit()">
+        <option value="month" {{
+        'selected' if time_type == 'month' }}>Theo tháng</option>
+        <option value="quarter" {{
+        'selected' if time_type == 'quarter' }}>Theo quý</option>
+        <option value="year" {{
+        'selected' if time_type == 'year' }}>Theo năm</option>
+    </select>
 
-<div class="row">
-    <div class="col-md-7 col-12">
-        <table class="table">
-            <tr>
-                <th>Tháng</th>
-                <th>Tổng doanh thu</th>
-            </tr>
+    <input type="number" name="time_value" class="form-control mr-2"
+           placeholder="Nhập số {{ time_type }}"
+           value="{{ time_value if time_value else '' }}"/>
 
-            {% for s in revenue_stats_by_time %}
-            <tr>
-                <td>{{ s[0] }}</td>
-                <td>{{ s[1] }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-    <div class="col-md-5 col-12">
-        <canvas id="myChart2"></canvas>
-    </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-<script>
-    function draw(ctx, data, labels) {
-        new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: "Doanh thu",
-            data: data,
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-          },
-        },
-      },
-    });
-    }
+    <!-- Filter theo Organizer -->
+    <label class="mr-2">Organizer:</label>
+    <select name="organizer_id" class="form-control mr-2" onchange="this.form.submit()">
+        <option value="">Tất cả</option>
+        {% for org in organizers %}
+        <option value="{{ org.id }}" {{'selected' if organizer_id|string == org.id|string else '' }}>{{ org.company_name }}</option>
+        {% endfor %}
+    </select>
 
-    let data1 = [];
-    let labels1 = [];
+    <button type="submit" class="btn btn-primary">Lọc</button>
+</form>
 
-    let data2 = [];
-    let labels2 = [];
-
-    {% for s in revenue_stats_by_events %}
-    data1.push({{ s[2] }});
-    labels1.push('{{ s[1] }}')
+<table class="table table-bordered table-striped">
+    <thead>
+    <tr>
+        <th>Organizer</th>
+        <th>Sự kiện</th>
+        <th>Vé VIP</th>
+        <th>Vé thường</th>
+        <th>Tổng doanh thu (VNĐ)</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for row in stats %}
+    <tr>
+        <td>{{ row.organizer }}</td>
+        <td>{{ row.event }}</td>
+        <td>{{ row.vip_tickets }}</td>
+        <td>{{ row.normal_tickets }}</td>
+        <td>{{ "{:,.0f}".format(row.revenue or 0) }}</td>
+    </tr>
     {% endfor %}
-
-    {% for s in revenue_stats_by_time %}
-    data2.push({{ s[1] }});
-    labels2.push({{ s[0] }})
-    {% endfor %}
-
-    window.onload = function () {
-      const ctx = document.getElementById("myChart");
-      draw(ctx, data1, labels1);
-      const ctx2 = document.getElementById("myChart2");
-      draw(ctx2, data2, labels2);
-
-    };
-</script>
+    </tbody>
+</table>
 {% endblock %}
